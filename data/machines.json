@@ -1,0 +1,50 @@
+{
+  "_comment": "Shop machine inventory. Each machine has a rate (USD/hr) and the features it can produce.",
+  "machines": {
+    "CNC_MILL_1": {
+      "name": "CNC Milling Machine",
+      "type": "CNC_Mill",
+      "rate_per_hr": 85.0,
+      "setup_time_hr": 0.5,
+      "capabilities": ["drilling", "counterbore", "countersink", "pocket", "contour", "facing", "tapping"],
+      "tools": ["end_mill", "drill", "counterbore", "tap", "face_mill"],
+      "max_material_size_in": [48, 24, 12]
+    },
+    "LASER_1": {
+      "name": "Laser Cutter",
+      "type": "Laser",
+      "rate_per_hr": 120.0,
+      "setup_time_hr": 0.25,
+      "capabilities": ["cut", "profile", "hole_small"],
+      "tools": ["laser_head"],
+      "max_material_size_in": [60, 48, 0.5]
+    },
+    "LATHE_1": {
+      "name": "CNC Lathe",
+      "type": "Lathe",
+      "rate_per_hr": 75.0,
+      "setup_time_hr": 0.5,
+      "capabilities": ["turning", "threading", "boring", "grooving", "facing"],
+      "tools": ["turning_insert", "boring_bar", "threading_tool"],
+      "max_diameter_in": 12
+    },
+    "WELDER_TIG_1": {
+      "name": "TIG Welder",
+      "type": "Welding",
+      "rate_per_hr": 65.0,
+      "setup_time_hr": 0.25,
+      "capabilities": ["weld", "tack_weld", "fillet_weld", "butt_weld"],
+      "tools": ["tig_torch"],
+      "materials_compatible": ["STEEL", "STAINLESS", "ALUMINUM"]
+    },
+    "PRESS_BRAKE_1": {
+      "name": "Press Brake",
+      "type": "Forming",
+      "rate_per_hr": 55.0,
+      "setup_time_hr": 0.5,
+      "capabilities": ["bend", "form", "flange"],
+      "tools": ["v_die", "punch"],
+      "max_material_thickness_in": 0.5
+    }
+  }
+}

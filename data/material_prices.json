@@ -1,0 +1,24 @@
+{
+  "_comment": "Prices in USD per square inch. Update from market/purchase history regularly.",
+  "materials": {
+    "A36_STEEL": {
+      "name": "A36 Mild Steel",
+      "price_per_sq_in": 0.045,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-06"
+    },
+    "304_STAINLESS": {
+      "name": "304 Stainless Steel",
+      "price_per_sq_in": 0.18,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-06"
+    },
+    "6061_ALUMINUM": {
+      "name": "6061 Aluminum",
+      "price_per_sq_in": 0.095,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-06"
+    }
+  },
+  "_note": "Add actual Schneider purchase price history here. These are placeholder values."
+}

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "pacteon"
+version = "0.1.0"
+description = "Should-cost calculator for custom manufactured parts — Schneider Packaging / Pacteon"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.40.0",
+    "pdfplumber>=0.11.0",
+    "pydantic>=2.7.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
