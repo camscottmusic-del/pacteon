@@ -12,11 +12,11 @@ _VENDORS_PATH = Path(__file__).parents[3] / "data" / "vendor_processes.json"
 
 
 def _load_library() -> dict:
-    return json.loads(_LIBRARY_PATH.read_text())
+    return json.loads(_LIBRARY_PATH.read_text(encoding="utf-8"))
 
 
 def _load_vendors() -> dict:
-    return json.loads(_VENDORS_PATH.read_text())
+    return json.loads(_VENDORS_PATH.read_text(encoding="utf-8"))
 
 
 def _material_thickness_key(material_key: str, thickness_in: float | None) -> str:

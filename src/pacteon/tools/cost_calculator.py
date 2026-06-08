@@ -7,11 +7,11 @@ _VENDORS_PATH = Path(__file__).parents[3] / "data" / "vendor_processes.json"
 
 
 def _load_prices() -> dict:
-    return json.loads(_PRICES_PATH.read_text())["materials"]
+    return json.loads(_PRICES_PATH.read_text(encoding="utf-8"))["materials"]
 
 
 def _load_vendors() -> dict:
-    return json.loads(_VENDORS_PATH.read_text())
+    return json.loads(_VENDORS_PATH.read_text(encoding="utf-8"))
 
 
 def calc_material_cost(

@@ -16,7 +16,7 @@ _STANDARDS_PATH = Path(__file__).parents[3] / "data" / "drawing_standards.json"
 
 
 def _build_system_prompt() -> str:
-    standards = json.loads(_STANDARDS_PATH.read_text())
+    standards = json.loads(_STANDARDS_PATH.read_text(encoding="utf-8"))
     standards_context = json.dumps(standards, indent=2)
     return f"""\
 You are an expert manufacturing engineer who reads 2D engineering drawings (sheet metal parts, machined parts, weldments, etc.).

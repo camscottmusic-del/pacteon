@@ -74,7 +74,7 @@ _ASSIGN_TOOL: anthropic.types.ToolParam = {
 class ShopForemanAgent:
     def __init__(self, client: anthropic.Anthropic):
         self.client = client
-        self._vendors = json.loads(_VENDORS_PATH.read_text())
+        self._vendors = json.loads(_VENDORS_PATH.read_text(encoding="utf-8"))
 
     def assign_routes(self, drawing: ExtractedDrawing) -> list[MachineProcess]:
         """Assign vendor processes to every feature and calculate costs deterministically."""
