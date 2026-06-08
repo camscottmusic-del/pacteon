@@ -25,17 +25,33 @@ def run_pipeline(pdf_path: str | Path, quantity: int = 1) -> Quote:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     # Stage 1: Read the drawing
-    console.print("[bold cyan]Stage 1:[/bold cyan] Reading engineering drawing...")
+    console.print(f"[bold cyan]Stage 1:[/bold cyan] Reading engineering drawing... [{Path(pdf_path).name}]")
     reader = DrawingReaderAgent(client)
     drawing = reader.read(pdf_path)
     console.print(f"  Part: {drawing.part_name or drawing.part_number}")
-    console.print(f"  Material: {drawing.material} ({drawing.length_in}\" x {drawing.width_in}\")")
+    dims = f"{drawing.length_in}\" x {drawing.width_in}\""
+    if drawing.is_formed:
+        dims += f" blank, formed height {drawing.formed_height_in}\""
+    console.print(f"  Material: {drawing.material} ({dims})")
     console.print(f"  Features found: {len(drawing.features)}")
+    for f in drawing.features:
+        console.print(f"    [{f.zone}] {f.quantity}x {f.feature_type} — {f.description}")
 
-    # Stage 2: Shop foreman assigns machine routes
-    console.print("\n[bold cyan]Stage 2:[/bold cyan] Shop foreman routing features...")
+    # Stage 2: Determine vendor processes + calculate times deterministically
+    console.print("\n[bold cyan]Stage 2:[/bold cyan] Determining vendor processes...")
     foreman = ShopForemanAgent(client)
-    processes = foreman.assign_routes(drawing)
+    try:
+        processes = foreman.assign_routes(drawing)
+        for p in processes:
+            console.print(
+                f"  [{p.feature_zone}] {p.machine_type}: {p.feature_description}"
+                f" → {p.estimated_time_hr:.3f} hr → ${p.labor_cost:.2f}"
+            )
+    except Exception as e:
+        import traceback
+        console.print(f"[bold red]Stage 2 error:[/bold red] {e}")
+        traceback.print_exc()
+        processes = []
 
     # Stage 3: Calculate costs deterministically
     console.print("\n[bold cyan]Stage 3:[/bold cyan] Calculating costs...")

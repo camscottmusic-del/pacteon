@@ -23,10 +23,18 @@ class ExtractedDrawing(BaseModel):
     material: str                      # e.g. "A36 Mild Steel"
     material_key: Optional[str] = None # Matches key in material_prices.json
 
-    # Part dimensions for material cost calculation
-    length_in: float
-    width_in: float
+    # Part form type — drives routing and pricing unit
+    # Values: plate | flat_stock | tube | round_bar | sheet_metal | weldment
+    part_form_type: str = "plate"
+
+    # Flat blank dimensions — used for material cost (cutlist)
+    length_in: float   # blank length (sum of flat segments for formed parts)
+    width_in: float    # blank width
     thickness_in: Optional[float] = None
+
+    # Formed part geometry (populated when is_formed=True)
+    is_formed: bool = False
+    formed_height_in: Optional[float] = None  # tallest leg/flange from side view
 
     # Manufacturing features identified in the drawing
     features: list[DrawingFeature] = Field(default_factory=list)

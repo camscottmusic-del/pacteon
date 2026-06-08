@@ -1,0 +1,126 @@
+{
+  "_comment": "Deterministic time formulas per process. Constants sourced from Machinery's Handbook and laser/press brake vendor specs.",
+  "_calibration": "Tune constants against real vendor quotes — Andrew's PO examples are the calibration target.",
+
+  "LASER_CUT": {
+    "formula_type": "geometry",
+    "description": "Time based on cut perimeter length and pierce count per material+thickness",
+    "pierce_time_hr": 0.0008,
+    "setup_hr": 0.25,
+    "feed_rates_in_per_min": {
+      "A36_STEEL_0063":       180,
+      "A36_STEEL_0125":       120,
+      "A36_STEEL_0188":       90,
+      "A36_STEEL_0250":       75,
+      "A36_STEEL_0375":       45,
+      "304_STAINLESS_0048":   160,
+      "304_STAINLESS_0063":   130,
+      "304_STAINLESS_0125":   80,
+      "304_STAINLESS_0188":   55,
+      "304_STAINLESS_0250":   45,
+      "6061_ALUMINUM_0063":   220,
+      "6061_ALUMINUM_0125":   150,
+      "6061_ALUMINUM_0250":   100,
+      "DEFAULT":              80
+    }
+  },
+
+  "WATERJET": {
+    "formula_type": "geometry",
+    "description": "Slower than laser but handles thick plate and any material",
+    "pierce_time_hr": 0.002,
+    "setup_hr": 0.25,
+    "feed_rates_in_per_min": {
+      "A36_STEEL_0250":       15,
+      "A36_STEEL_0500":       8,
+      "A36_STEEL_0750":       5,
+      "304_STAINLESS_0250":   12,
+      "304_STAINLESS_0500":   6,
+      "6061_ALUMINUM_0250":   25,
+      "6061_ALUMINUM_0500":   15,
+      "DEFAULT":              12
+    }
+  },
+
+  "TUBE_LASER": {
+    "formula_type": "geometry",
+    "description": "Linear cutting length along tube profile",
+    "pierce_time_hr": 0.001,
+    "setup_hr": 0.50,
+    "feed_rates_in_per_min": {
+      "A36_STEEL_0125":       90,
+      "A36_STEEL_0188":       65,
+      "304_STAINLESS_0125":   60,
+      "6061_ALUMINUM_0125":   110,
+      "DEFAULT":              70
+    }
+  },
+
+  "PRESS_BRAKE": {
+    "formula_type": "count",
+    "description": "Time per bend including positioning and stroke. Setup covers tool selection and first-piece setup.",
+    "time_per_unit_hr": 0.05,
+    "setup_hr": 0.50
+  },
+
+  "TAP": {
+    "formula_type": "count",
+    "description": "Time per tapped hole. Assumes standard machine tapping.",
+    "time_per_unit_hr": 0.012,
+    "setup_hr": 0.25
+  },
+
+  "CNC_MILL": {
+    "formula_type": "count",
+    "description": "Time per milled feature (hole, pocket, slot, contour op). Setup covers program load and fixturing.",
+    "time_per_unit_hr": 0.033,
+    "setup_hr": 0.50
+  },
+
+  "LATHE": {
+    "formula_type": "count",
+    "description": "Time per turned feature. Setup covers chuck and tool setup.",
+    "time_per_unit_hr": 0.05,
+    "setup_hr": 0.50
+  },
+
+  "WELD_TIG": {
+    "formula_type": "count",
+    "description": "Time per weld joint/bead. Setup covers fixturing and tack.",
+    "time_per_unit_hr": 0.083,
+    "setup_hr": 0.25
+  },
+
+  "PAINT": {
+    "formula_type": "area_tier",
+    "description": "Tiered by blank area (proxy for surface area). Includes prep, prime, topcoat.",
+    "setup_hr": 0.50,
+    "tiers": {
+      "small":  { "max_sq_in": 50,  "time_hr": 0.25 },
+      "medium": { "max_sq_in": 200, "time_hr": 0.50 },
+      "large":  { "max_sq_in": null, "time_hr": 1.00 }
+    }
+  },
+
+  "POWDER_COAT": {
+    "formula_type": "area_tier",
+    "description": "Tiered by blank area. Includes rack, coat, cure, rack-off.",
+    "setup_hr": 0.50,
+    "tiers": {
+      "small":  { "max_sq_in": 50,  "time_hr": 0.33 },
+      "medium": { "max_sq_in": 200, "time_hr": 0.67 },
+      "large":  { "max_sq_in": null, "time_hr": 1.25 }
+    }
+  },
+
+  "ANODIZE": {
+    "formula_type": "area_tier",
+    "description": "Aluminum only. Tiered by blank area. Includes rack, tank time, seal, rack-off.",
+    "setup_hr": 0.50,
+    "tiers": {
+      "small":  { "max_sq_in": 50,  "time_hr": 0.50 },
+      "medium": { "max_sq_in": 200, "time_hr": 1.00 },
+      "large":  { "max_sq_in": null, "time_hr": 2.00 }
+    }
+  }
+}

@@ -52,8 +52,9 @@ src/pacteon/
 
 ## Key Data Files
 
-- `data/material_prices.json` — per-sq-in pricing for each material. **Must be kept current** with Schneider's actual purchase prices to hit ±10% accuracy.
-- `data/machines.json` — shop machine inventory: capabilities, hourly rate, setup time. Update when machines are added or rates change.
+- `data/material_prices.json` — per-sq-in (plate/sheet) or per-linear-ft (bar/tube) pricing. Keep current with market rates.
+- `data/vendor_processes.json` — vendor process types with hourly rates and setup times. Process IDs here must match vendor capability tags in the vendor database exactly.
+- `data/process_library.json` — **the brain**: deterministic time formulas per process (geometry, count, area_tier). Sourced from Machinery's Handbook and vendor specs. Calibrate constants against real PO history to hit ±10%.
 - `data/sample_drawings/` — place test PDFs here (gitignored by extension).
 
 ## Agent Models

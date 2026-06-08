@@ -1,9 +1,9 @@
 """
 ShopForemanAgent — Stage 2 of the pipeline.
 
-Acts as the AI shop foreman: takes the extracted drawing features and the
-available machine inventory, then assigns each feature to the optimal machine
-and estimates run time. Returns a list of MachineProcess records.
+Determines what vendor processes are required to manufacture a complete part.
+AI assigns features to process IDs; process_calculator computes time and cost
+deterministically from process_library.json.
 """
 import json
 from pathlib import Path
@@ -12,33 +12,40 @@ import anthropic
 
 from ..models.drawing import ExtractedDrawing
 from ..models.machine import MachineProcess
+from ..tools.process_calculator import calc_process_time, calc_process_cost
 
-_MACHINES_PATH = Path(__file__).parents[4] / "data" / "machines.json"
+_VENDORS_PATH = Path(__file__).parents[3] / "data" / "vendor_processes.json"
 
 _SYSTEM_PROMPT = """\
-You are an experienced manufacturing shop foreman at Schneider Packaging, a precision fabrication facility.
+You are a manufacturing cost estimator. Your job is to determine what vendor processes
+are required to manufacture a part completely, given its drawing features and form type.
 
-You will be given:
-1. A list of manufacturing features extracted from an engineering drawing (zone, type, quantity, dimensions).
-2. The available machine inventory with their capabilities and hourly rates.
+You are NOT routing through a factory floor. You are answering:
+"If I sent this drawing to a vendor, what processes would they need to perform to deliver a finished part?"
 
-Your job is to assign each feature to the best available machine and estimate the run time in hours.
-Think about: setup efficiency (batching similar operations), material flow through the shop, machine capabilities.
+## Routing rules by form_type
 
-Rules:
-- Every feature must be assigned to exactly one machine.
-- Estimate run_time_hr conservatively — it is better to slightly overestimate than underestimate.
-- If a feature could use multiple machines, pick the most cost-efficient one.
-- Small holes < 0.5" diameter: prefer the laser if material thickness allows, else CNC mill.
-- Welds: always assign to WELDER_TIG_1 unless noted otherwise.
-- Bends/forms: always assign to PRESS_BRAKE_1.
+- **plate**: Profile cut on LASER_CUT or WATERJET. Secondary holes/taps → TAP or CNC_MILL.
+- **flat_stock**: All ops on CNC_MILL.
+- **tube**: Primary cut on TUBE_LASER. Secondary ops → CNC_MILL if needed.
+- **round_bar**: Primary turning on LATHE. Secondary milling → CNC_MILL.
+- **sheet_metal**: LASER_CUT profile → PRESS_BRAKE for bends → TAP for threads → WELD_TIG if called out → finish ops (PAINT, POWDER_COAT, or ANODIZE) if called out.
+- **weldment**: Each component by its own form_type, then WELD_TIG for assembly.
 
-Always call assign_machine_routes with your full assignments.
+## Rules
+- Every feature must map to exactly one process_id.
+- For geometry-based processes (LASER_CUT, WATERJET, TUBE_LASER): provide cut_length_in (estimate the cut perimeter from part dimensions if not explicit) and pierce_count (number of holes/slots).
+- For count-based processes (PRESS_BRAKE, TAP, CNC_MILL, LATHE, WELD_TIG): provide quantity (number of operations).
+- For finish processes (PAINT, POWDER_COAT, ANODIZE): quantity = 1 (area tier is calculated from blank dimensions).
+- Only include finish operations if explicitly called out in drawing notes or finish specification.
+- Do NOT include estimated_time_hr — time is calculated by the system.
+
+Always call assign_vendor_processes with your complete assignments.
 """
 
 _ASSIGN_TOOL: anthropic.types.ToolParam = {
-    "name": "assign_machine_routes",
-    "description": "Assign each drawing feature to a machine and estimate run time.",
+    "name": "assign_vendor_processes",
+    "description": "Map each drawing feature to the vendor process required to produce it.",
     "input_schema": {
         "type": "object",
         "properties": {
@@ -47,19 +54,15 @@ _ASSIGN_TOOL: anthropic.types.ToolParam = {
                 "items": {
                     "type": "object",
                     "properties": {
-                        "feature_zone": {"type": "string"},
+                        "feature_zone":        {"type": "string"},
                         "feature_description": {"type": "string"},
-                        "machine_id": {"type": "string", "description": "Must match a key in the machines inventory"},
-                        "machine_type": {"type": "string"},
-                        "tool_used": {"type": "string"},
-                        "estimated_time_hr": {"type": "number"},
-                        "setup_time_hr": {"type": "number"},
-                        "notes": {"type": "string"},
+                        "process_id":          {"type": "string", "description": "Must match a key in vendor_processes.json"},
+                        "quantity":            {"type": "integer", "description": "Number of operations (bends, taps, welds, etc.)"},
+                        "cut_length_in":       {"type": "number",  "description": "Estimated cut perimeter in inches (geometry processes only)"},
+                        "pierce_count":        {"type": "integer", "description": "Number of pierce points / holes (geometry processes only)"},
+                        "notes":               {"type": "string"},
                     },
-                    "required": [
-                        "feature_zone", "feature_description", "machine_id",
-                        "machine_type", "tool_used", "estimated_time_hr", "setup_time_hr",
-                    ],
+                    "required": ["feature_zone", "feature_description", "process_id", "quantity"],
                 },
             }
         },
@@ -71,22 +74,24 @@ _ASSIGN_TOOL: anthropic.types.ToolParam = {
 class ShopForemanAgent:
     def __init__(self, client: anthropic.Anthropic):
         self.client = client
-        self._machines = json.loads(_MACHINES_PATH.read_text())["machines"]
+        self._vendors = json.loads(_VENDORS_PATH.read_text())
 
     def assign_routes(self, drawing: ExtractedDrawing) -> list[MachineProcess]:
-        """Assign machine routes to every feature in the extracted drawing."""
+        """Assign vendor processes to every feature and calculate costs deterministically."""
         features_text = "\n".join(
             f"- Zone {f.zone}: {f.quantity}x {f.feature_type} — {f.description}"
             + (f" [{f.dimension}]" if f.dimension else "")
             for f in drawing.features
-        )
-        machines_text = json.dumps(self._machines, indent=2)
+        ) or "(no explicit features — route based on form_type and blank dimensions)"
 
         prompt = (
             f"Part: {drawing.part_name or drawing.part_number or 'Unknown'}\n"
-            f"Material: {drawing.material}\n\n"
-            f"Features to route:\n{features_text}\n\n"
-            f"Available machines:\n{machines_text}"
+            f"Form type: {drawing.part_form_type}\n"
+            f"Material: {drawing.material} ({drawing.material_key or 'unknown key'})\n"
+            f"Blank: {drawing.length_in}\" × {drawing.width_in}\""
+            + (f", formed height {drawing.formed_height_in}\"" if drawing.is_formed else "") + "\n\n"
+            f"Features:\n{features_text}\n\n"
+            f"Available processes: {', '.join(self._vendors.keys())}"
         )
 
         response = self.client.messages.create(
@@ -94,23 +99,47 @@ class ShopForemanAgent:
             max_tokens=4096,
             system=_SYSTEM_PROMPT,
             tools=[_ASSIGN_TOOL],
-            tool_choice={"type": "tool", "name": "assign_machine_routes"},
+            tool_choice={"type": "tool", "name": "assign_vendor_processes"},
             messages=[{"role": "user", "content": prompt}],
         )
 
         tool_block = next(b for b in response.content if b.type == "tool_use")
         assignments = tool_block.input["assignments"]
 
+        blank_area = drawing.length_in * drawing.width_in
         processes = []
+
         for a in assignments:
-            machine = self._machines.get(a["machine_id"], {})
-            rate = machine.get("rate_per_hr", 0.0)
-            labor_cost = a["estimated_time_hr"] * rate
-            processes.append(
-                MachineProcess(
-                    rate_per_hr=rate,
-                    labor_cost=labor_cost,
-                    **{k: v for k, v in a.items()},
-                )
+            process_id = a["process_id"]
+            if process_id not in self._vendors:
+                continue  # skip if AI hallucinated an unknown process
+
+            vendor_proc = self._vendors[process_id]
+            rate = vendor_proc["rate_per_hr"]
+
+            time_hr = calc_process_time(
+                process_id=process_id,
+                quantity=a.get("quantity", 1),
+                material_key=drawing.material_key or "DEFAULT",
+                thickness_in=drawing.thickness_in,
+                blank_area_sq_in=blank_area,
+                cut_length_in=a.get("cut_length_in", 0.0),
+                pierce_count=a.get("pierce_count", 0),
             )
+            setup_cost, run_cost = calc_process_cost(process_id, time_hr)
+            labor_cost = setup_cost + run_cost
+
+            processes.append(MachineProcess(
+                feature_zone=a["feature_zone"],
+                feature_description=a["feature_description"],
+                machine_id=process_id,
+                machine_type=vendor_proc["name"],
+                tool_used=process_id,
+                estimated_time_hr=time_hr,
+                setup_time_hr=vendor_proc["setup_hr"],
+                rate_per_hr=rate,
+                labor_cost=labor_cost,
+                notes=a.get("notes"),
+            ))
+
         return processes

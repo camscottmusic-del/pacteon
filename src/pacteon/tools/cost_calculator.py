@@ -2,16 +2,16 @@
 import json
 from pathlib import Path
 
-_PRICES_PATH = Path(__file__).parents[4] / "data" / "material_prices.json"
-_MACHINES_PATH = Path(__file__).parents[4] / "data" / "machines.json"
+_PRICES_PATH = Path(__file__).parents[3] / "data" / "material_prices.json"
+_VENDORS_PATH = Path(__file__).parents[3] / "data" / "vendor_processes.json"
 
 
 def _load_prices() -> dict:
     return json.loads(_PRICES_PATH.read_text())["materials"]
 
 
-def _load_machines() -> dict:
-    return json.loads(_MACHINES_PATH.read_text())["machines"]
+def _load_vendors() -> dict:
+    return json.loads(_VENDORS_PATH.read_text())
 
 
 def calc_material_cost(
@@ -34,14 +34,14 @@ def calc_material_cost(
 
 
 def calc_machine_cost(
-    machine_id: str,
+    process_id: str,
     run_time_hr: float,
     setup_time_hr: float | None = None,
 ) -> float:
-    """Returns total cost for one machine operation including setup."""
-    machines = _load_machines()
-    if machine_id not in machines:
-        raise ValueError(f"Unknown machine '{machine_id}'. Add it to data/machines.json.")
-    machine = machines[machine_id]
-    effective_setup = setup_time_hr if setup_time_hr is not None else machine["setup_time_hr"]
-    return (run_time_hr + effective_setup) * machine["rate_per_hr"]
+    """Returns total cost for one vendor process including setup."""
+    vendors = _load_vendors()
+    if process_id not in vendors:
+        raise ValueError(f"Unknown process '{process_id}'. Add it to data/vendor_processes.json.")
+    proc = vendors[process_id]
+    effective_setup = setup_time_hr if setup_time_hr is not None else proc["setup_hr"]
+    return (run_time_hr + effective_setup) * proc["rate_per_hr"]
