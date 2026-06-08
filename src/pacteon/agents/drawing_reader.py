@@ -12,39 +12,51 @@ import anthropic
 from ..models.drawing import DrawingFeature, ExtractedDrawing
 from ..tools.pdf_extractor import extract_pdf_text, extract_pdf_images
 
-_SYSTEM_PROMPT = """\
+_STANDARDS_PATH = Path(__file__).parents[3] / "data" / "drawing_standards.json"
+
+
+def _build_system_prompt() -> str:
+    standards = json.loads(_STANDARDS_PATH.read_text())
+    standards_context = json.dumps(standards, indent=2)
+    return f"""\
 You are an expert manufacturing engineer who reads 2D engineering drawings (sheet metal parts, machined parts, weldments, etc.).
 
+You have the following ANSI/ASME/ISO drawing standards reference. Use it to correctly interpret every symbol, notation, material code, and feature callout you encounter:
+
+<drawing_standards>
+{standards_context}
+</drawing_standards>
+
 ## Dimension rules — critical
-- Dimensions shown in PARENTHESES, e.g. (4.44), are REFERENCE dimensions. NEVER use them for blank_length_in or blank_width_in.
-- Use only the nominal (non-parenthetical) dimensions for all calculations.
-- Read ALL views present: top, front, right side, section, auxiliary, detail. Cross-reference them.
+- Dimensions in PARENTHESES e.g. (4.44) = REFERENCE — see drawing_standards.dimension_notation. NEVER use for blank_length_in or blank_width_in.
+- Read ALL views: top, front, right side, section, auxiliary, detail. Cross-reference them.
 
-## Blank dimensions (for cutlist / material cost)
-- blank_length_in and blank_width_in are the FLAT BLANK dimensions — the size of raw stock that gets cut before any forming.
-- For a FLAT part: blank_length_in = overall length, blank_width_in = overall width.
-- For a FORMED/BENT part (L-bracket, U-channel, Z-bracket, etc.): blank_length_in = SUM of all flat segments in the profile view (e.g. 3.50 + 1.00 = 4.50"). Do NOT use the overall formed length.
-- is_formed = true if the part has any bends, flanges, or formed features.
-- formed_height_in = the tallest leg or flange height from the profile/side view (e.g. 1.50").
+## Blank dimensions (cutlist / material cost)
+- blank_length_in and blank_width_in = FLAT BLANK size before any forming.
+- Flat part: overall length × width.
+- Formed/bent part: blank_length_in = SUM of all flat profile segments (e.g. 3.50 + 1.00 = 4.50"). Do NOT use the overall formed dimension.
+- is_formed = true if part has any bends, flanges, or formed features.
+- formed_height_in = tallest leg or flange height from side/profile view.
 
-## Part form type — determines routing and pricing unit
-Identify part_form_type from the material designation and geometry. Choose exactly one:
-
-- **plate** — flat sheet or plate material (e.g. "A36 PL", "304SHT", "6061 PLATE"). Cut by waterjet or laser. Priced per sq in.
-- **flat_stock** — flat bar or structural stock (e.g. "1x4 flat bar", "A36 FS"). Machined/milled. Priced per linear ft.
-- **tube** — square, rectangular, or round tube (e.g. "HSS 2x2x.125", "DOM TUBE"). Cut on tube laser. Priced per linear ft.
-- **round_bar** — solid round bar or rod (e.g. "1.5" DIA 1018", "6061 ROD"). Turned on lathe or milled. Priced per linear ft.
-- **sheet_metal** — thin formed sheet metal. ALL operations outsourced to vendors (laser, press brake, tap, weld, paint, powder coat, anodize). Priced via vendor rates.
-- **weldment** — assembly of multiple components; each component priced by its own form_type.
+## Part form type — use material_form_codes from drawing_standards to identify
+- **plate** — PL, PLATE: laser/waterjet cut, priced per sq in
+- **flat_stock** — FS, FLAT, BAR (flat): milled, priced per linear ft
+- **tube** — HSS, DOM, ERW, TUBE, PIPE: tube laser, priced per linear ft
+- **round_bar** — RD, ROD: lathe/mill, priced per linear ft
+- **sheet_metal** — SHT, SHEET: all ops outsourced (laser→press brake→tap→weld→finish)
+- **weldment** — multi-component assembly
 
 ## Material
-Extract the full material designation from the title block or BOM (e.g. "304SHT", "A36", "6061-T6"). Match to the closest material_key.
+Extract full designation from title block or BOM. Use material_spec_prefixes from drawing_standards to match material_key.
 
 ## Features
-Extract every manufacturing feature: holes, slots, taps, threads, welds, bends, counterbores, countersinks, pockets, notches, finish operations (paint, powder coat, anodize).
+Extract every feature using hole_callout_terms, gdt_symbols, weld_symbols, and finish_callout_terms from drawing_standards. Include finish operations only if explicitly called out.
 
 Always call the extract_drawing tool — do not respond with plain text.
 """
+
+
+_SYSTEM_PROMPT = _build_system_prompt()
 
 _EXTRACT_TOOL: anthropic.types.ToolParam = {
     "name": "extract_drawing",

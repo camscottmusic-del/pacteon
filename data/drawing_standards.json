@@ -1,0 +1,134 @@
+{
+  "_comment": "Symbol and notation reference for ANSI/ASME Y14.5 and ISO drawing standards. Injected into drawing reader context to improve feature recognition accuracy.",
+
+  "dimension_notation": {
+    "parentheses":      { "meaning": "REFERENCE dimension — informational only. NEVER use for blank_length_in or blank_width_in.", "example": "(4.44)" },
+    "boxed":            { "meaning": "BASIC dimension — theoretical exact value used with GD&T tolerances. Use as nominal for positioning, not for blank size.", "example": "|2.500|" },
+    "underlined":       { "meaning": "NOT TO SCALE — dimension shown does not match drawn geometry. Use the written value.", "example": "3.00" },
+    "double_underline": { "meaning": "Non-standard or special requirement — note carefully.", "example": "1.500" },
+    "TYP":              { "meaning": "TYPICAL — dimension applies to all identical features unless otherwise noted.", "example": "R.13 TYP" },
+    "REF":              { "meaning": "REFERENCE — same as parenthetical, ignore for sizing.", "example": "4.44 REF" },
+    "MAX_MIN":          { "meaning": "Limit dimension — use the specified limit for worst-case cost estimation.", "example": ".500 MAX" }
+  },
+
+  "gdt_symbols": {
+    "Ø":   { "name": "Diameter",          "feature": "hole or round feature",          "process_hint": "drill or laser_cut or lathe" },
+    "R":   { "name": "Radius",            "feature": "rounded edge or arc",            "process_hint": "laser_cut or cnc_mill" },
+    "SR":  { "name": "Spherical Radius",  "feature": "spherical surface",              "process_hint": "lathe or cnc_mill" },
+    "⏥":  { "name": "Flatness",          "feature": "flat surface tolerance",         "process_hint": "cnc_mill or grind" },
+    "○":  { "name": "Circularity",       "feature": "round cross-section tolerance",  "process_hint": "lathe" },
+    "⌭":  { "name": "Cylindricity",      "feature": "cylindrical form tolerance",     "process_hint": "lathe" },
+    "⌒":  { "name": "Profile of Line",   "feature": "profile control",               "process_hint": "cnc_mill" },
+    "⌓":  { "name": "Profile of Surface","feature": "surface profile control",        "process_hint": "cnc_mill" },
+    "//":  { "name": "Parallelism",       "feature": "parallel surface control",       "process_hint": "cnc_mill" },
+    "⊥":  { "name": "Perpendicularity",  "feature": "90° surface control",           "process_hint": "cnc_mill" },
+    "∠":  { "name": "Angularity",        "feature": "angled surface control",         "process_hint": "cnc_mill" },
+    "↔":  { "name": "Symmetry",          "feature": "symmetric form control",         "process_hint": "lathe or cnc_mill" },
+    "⊕":  { "name": "True Position",     "feature": "hole or feature location",       "process_hint": "cnc_mill or laser_cut" },
+    "◎":  { "name": "Concentricity",     "feature": "coaxial feature control",        "process_hint": "lathe" },
+    "⌰":  { "name": "Circular Runout",   "feature": "rotational surface control",     "process_hint": "lathe" },
+    "↗":  { "name": "Total Runout",      "feature": "full surface rotation control",  "process_hint": "lathe" },
+    "⌀":  { "name": "Diameter (alt)",    "feature": "hole or round feature",          "process_hint": "drill or laser_cut or lathe" }
+  },
+
+  "hole_callout_terms": {
+    "THRU":       "through hole — drill or laser the full thickness",
+    "THRU ALL":   "through hole spanning multiple features",
+    "BLIND":      "hole does not go all the way through — drill only, no laser",
+    "C'BORE":     "counterbore — stepped hole, flat bottom recess, process: cnc_mill counterbore",
+    "CBORE":      "counterbore (alternate notation)",
+    "C'SINK":     "countersink — angled recess for flat-head screws, process: cnc_mill countersink",
+    "CSINK":      "countersink (alternate notation)",
+    "C'DRILL":    "center drill — starter hole for lathe work",
+    "SPOTFACE":   "shallow flat-bottom recess for seating bolt heads, process: cnc_mill",
+    "SF":         "spotface (alternate notation)",
+    "TAP":        "threaded hole — process: tap",
+    "UNC":        "Unified National Coarse thread — process: tap",
+    "UNF":        "Unified National Fine thread — process: tap",
+    "NPT":        "National Pipe Taper thread — process: tap",
+    "HELICOIL":   "thread insert — process: tap + insert"
+  },
+
+  "weld_symbols": {
+    "arrow_side_triangle":  { "name": "Fillet weld (arrow side)",  "feature": "fillet_weld", "process": "WELD_TIG" },
+    "other_side_triangle":  { "name": "Fillet weld (other side)",  "feature": "fillet_weld", "process": "WELD_TIG" },
+    "both_sides_triangle":  { "name": "Fillet weld (both sides)",  "feature": "fillet_weld", "process": "WELD_TIG" },
+    "square_groove":        { "name": "Square groove weld",        "feature": "groove_weld", "process": "WELD_TIG" },
+    "v_groove":             { "name": "V-groove weld",             "feature": "groove_weld", "process": "WELD_TIG" },
+    "bevel_groove":         { "name": "Bevel groove weld",         "feature": "groove_weld", "process": "WELD_TIG" },
+    "plug_slot":            { "name": "Plug or slot weld",         "feature": "plug_weld",   "process": "WELD_TIG" },
+    "spot":                 { "name": "Spot weld",                 "feature": "spot_weld",   "process": "WELD_TIG" },
+    "all_around_circle":    { "name": "Weld all around",           "feature": "weld_continuous", "process": "WELD_TIG" },
+    "flag":                 { "name": "Field weld (on-site)",      "feature": "field_weld",  "process": "WELD_TIG" },
+    "CJP":                  { "name": "Complete Joint Penetration", "feature": "full_pen_weld", "process": "WELD_TIG" },
+    "PJP":                  { "name": "Partial Joint Penetration", "feature": "partial_pen_weld", "process": "WELD_TIG" }
+  },
+
+  "surface_finish_symbols": {
+    "check_mark_symbol":    { "name": "Surface finish required", "Ra_default": 125, "process_hint": "cnc_mill or grind" },
+    "Ra":                   { "name": "Arithmetic mean roughness", "note": "Lower Ra = tighter finish = more expensive" },
+    "63_Ra":                { "process_hint": "cnc_mill fine pass" },
+    "125_Ra":               { "process_hint": "cnc_mill standard" },
+    "250_Ra":               { "process_hint": "cnc_mill rough or as-cut" }
+  },
+
+  "finish_callout_terms": {
+    "PAINT":         { "process": "PAINT",       "note": "Look for color callout in notes" },
+    "PRIME":         { "process": "PAINT",       "note": "Primer only — include under PAINT" },
+    "POWDER COAT":   { "process": "POWDER_COAT", "note": "Look for color callout" },
+    "PC":            { "process": "POWDER_COAT", "note": "Powder coat abbreviation" },
+    "ANODIZE":       { "process": "ANODIZE",     "note": "Aluminum only. Type II unless specified." },
+    "ANODIZED":      { "process": "ANODIZE",     "note": "Aluminum only." },
+    "BLACK OXIDE":   { "process": "PAINT",       "note": "Steel conversion coating — treat as finish op" },
+    "ZINC PLATE":    { "process": "PAINT",       "note": "Electroplating — treat as finish op" },
+    "NO FINISH":     { "process": null,           "note": "Raw material as-cut, no finish operation needed" },
+    "AS WELDED":     { "process": null,           "note": "No additional finish after welding" }
+  },
+
+  "material_form_codes": {
+    "_note": "Appear in material callouts to identify raw stock form. Use to set part_form_type.",
+    "SHT":    { "form": "sheet_metal", "description": "Sheet — thin flat stock, formed by press brake" },
+    "SHEET":  { "form": "sheet_metal", "description": "Sheet" },
+    "PL":     { "form": "plate",       "description": "Plate — thicker flat stock, cut by laser or waterjet" },
+    "PLATE":  { "form": "plate",       "description": "Plate" },
+    "FS":     { "form": "flat_stock",  "description": "Flat stock / flat bar — milled" },
+    "FLAT":   { "form": "flat_stock",  "description": "Flat bar" },
+    "BAR":    { "form": "flat_stock",  "description": "Bar stock — context-dependent, check cross-section" },
+    "RD":     { "form": "round_bar",   "description": "Round bar / rod — turned on lathe" },
+    "ROD":    { "form": "round_bar",   "description": "Round rod" },
+    "DOM":    { "form": "tube",        "description": "Drawn Over Mandrel — round tube" },
+    "ERW":    { "form": "tube",        "description": "Electric Resistance Welded — round tube" },
+    "HSS":    { "form": "tube",        "description": "Hollow Structural Section — square or rectangular tube" },
+    "TUBE":   { "form": "tube",        "description": "Tube (generic)" },
+    "PIPE":   { "form": "tube",        "description": "Pipe — check schedule for wall thickness" }
+  },
+
+  "material_spec_prefixes": {
+    "_note": "Common ASTM/AMS designations. Use to identify material_key.",
+    "A36":    "A36_STEEL — common mild steel plate/flat",
+    "A500":   "A36_STEEL — structural tube (treat as steel for cost)",
+    "A513":   "A36_STEEL — DOM round tube (treat as steel)",
+    "304":    "304_STAINLESS — austenitic stainless, most common",
+    "316":    "304_STAINLESS — marine-grade stainless (treat as 304 for cost estimate)",
+    "6061":   "6061_ALUMINUM — most common structural aluminum",
+    "5052":   "6061_ALUMINUM — sheet aluminum (treat as 6061 for cost estimate)",
+    "7075":   "6061_ALUMINUM — high-strength aluminum (treat as 6061 for cost estimate)"
+  },
+
+  "projection_method": {
+    "third_angle": { "standard": "ANSI/ASME", "symbol": "truncated cone with circle on right", "note": "Top view above front, right side view to the right of front. Most US drawings." },
+    "first_angle": { "standard": "ISO",       "symbol": "truncated cone with circle on left",  "note": "Top view below front, right side view to the left of front. European drawings." }
+  },
+
+  "view_labels": {
+    "FRONT":     "Primary view — most descriptive face",
+    "TOP":       "Plan view — looking down",
+    "RIGHT":     "Right side elevation",
+    "LEFT":      "Left side elevation",
+    "BOTTOM":    "Bottom view",
+    "SECTION":   "Cut-away view — reveals internal features",
+    "DETAIL":    "Enlarged view of a specific area",
+    "AUXILIARY": "Angled view showing true shape of inclined surface",
+    "ISO":       "Isometric / pictorial view — for reference only, do not dimension from"
+  }
+}
