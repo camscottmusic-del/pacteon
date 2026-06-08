@@ -1,44 +1,65 @@
 {
-  "_comment": "Deterministic time formulas per process. Constants sourced from Machinery's Handbook and laser/press brake vendor specs.",
-  "_calibration": "Tune constants against real vendor quotes — Andrew's PO examples are the calibration target.",
+  "_comment": "Deterministic time formulas per process. Constants sourced from Machinery's Handbook and vendor spec sheets.",
+  "_calibration": "Tune against real Schneider PO data when available.",
 
   "LASER_CUT": {
     "formula_type": "geometry",
-    "description": "Time based on cut perimeter length and pierce count per material+thickness",
+    "description": "Time based on cut perimeter and pierce count per material+thickness",
     "pierce_time_hr": 0.0008,
     "setup_hr": 0.25,
     "feed_rates_in_per_min": {
-      "A36_STEEL_0063":       180,
-      "A36_STEEL_0125":       120,
-      "A36_STEEL_0188":       90,
-      "A36_STEEL_0250":       75,
-      "A36_STEEL_0375":       45,
-      "304_STAINLESS_0048":   160,
-      "304_STAINLESS_0063":   130,
-      "304_STAINLESS_0125":   80,
-      "304_STAINLESS_0188":   55,
-      "304_STAINLESS_0250":   45,
-      "6061_ALUMINUM_0063":   220,
-      "6061_ALUMINUM_0125":   150,
-      "6061_ALUMINUM_0250":   100,
-      "DEFAULT":              80
+      "A36_STEEL_0048":        200,
+      "A36_STEEL_0060":        180,
+      "A36_STEEL_0075":        160,
+      "A36_STEEL_0120":        120,
+      "A36_STEEL_0125":        120,
+      "A36_STEEL_0188":        90,
+      "A36_STEEL_0250":        75,
+      "A36_STEEL_0375":        45,
+      "A572_GR50_0120":        115,
+      "A572_GR50_0188":        85,
+      "A572_GR50_0250":        70,
+      "A1008_CRCS_0048":       200,
+      "A1008_CRCS_0060":       180,
+      "A1008_CRCS_0075":       155,
+      "A1008_CRCS_0120":       120,
+      "304_STAINLESS_0048":    160,
+      "304_STAINLESS_0060":    140,
+      "304_STAINLESS_0075":    120,
+      "304_STAINLESS_0120":    90,
+      "304_STAINLESS_0125":    80,
+      "304_STAINLESS_0188":    55,
+      "304_STAINLESS_0250":    45,
+      "316_STAINLESS_0048":    155,
+      "316_STAINLESS_0075":    115,
+      "316_STAINLESS_0125":    75,
+      "316_STAINLESS_0188":    50,
+      "6061_ALUMINUM_0063":    220,
+      "6061_ALUMINUM_0125":    150,
+      "6061_ALUMINUM_0250":    100,
+      "5052_ALUMINUM_0048":    240,
+      "5052_ALUMINUM_0063":    210,
+      "5052_ALUMINUM_0125":    145,
+      "DEFAULT":               80
     }
   },
 
   "WATERJET": {
     "formula_type": "geometry",
-    "description": "Slower than laser but handles thick plate and any material",
+    "description": "Slower than laser; handles thick plate and hard materials",
     "pierce_time_hr": 0.002,
     "setup_hr": 0.25,
     "feed_rates_in_per_min": {
-      "A36_STEEL_0250":       15,
-      "A36_STEEL_0500":       8,
-      "A36_STEEL_0750":       5,
-      "304_STAINLESS_0250":   12,
-      "304_STAINLESS_0500":   6,
-      "6061_ALUMINUM_0250":   25,
-      "6061_ALUMINUM_0500":   15,
-      "DEFAULT":              12
+      "A36_STEEL_0250":        15,
+      "A36_STEEL_0500":        8,
+      "A36_STEEL_0750":        5,
+      "A572_GR50_0375":        10,
+      "A572_GR50_0500":        7,
+      "304_STAINLESS_0250":    12,
+      "304_STAINLESS_0500":    6,
+      "6061_ALUMINUM_0250":    25,
+      "6061_ALUMINUM_0500":    15,
+      "DEFAULT":               12
     }
   },
 
@@ -48,11 +69,13 @@
     "pierce_time_hr": 0.001,
     "setup_hr": 0.50,
     "feed_rates_in_per_min": {
-      "A36_STEEL_0125":       90,
-      "A36_STEEL_0188":       65,
-      "304_STAINLESS_0125":   60,
-      "6061_ALUMINUM_0125":   110,
-      "DEFAULT":              70
+      "A36_STEEL_0125":        90,
+      "A36_STEEL_0188":        65,
+      "A500_GRB_0125":         88,
+      "A500_GRB_0188":         62,
+      "304_STAINLESS_0125":    60,
+      "6061_ALUMINUM_0125":    110,
+      "DEFAULT":               70
     }
   },
 
@@ -70,9 +93,16 @@
     "setup_hr": 0.25
   },
 
+  "DRILL": {
+    "formula_type": "count",
+    "description": "Drill press time per hole. Use for simple through/blind holes ≤ 0.5\" dia with no tight tolerance callout. Cheaper than CNC mill.",
+    "time_per_unit_hr": 0.017,
+    "setup_hr": 0.25
+  },
+
   "CNC_MILL": {
     "formula_type": "count",
-    "description": "Time per milled feature (hole, pocket, slot, contour op). Setup covers program load and fixturing.",
+    "description": "Time per milled feature — pockets, slots, contours, counterbores, countersinks, holes >0.5\" dia, or any hole with tight tolerance. Setup covers program load and fixturing.",
     "time_per_unit_hr": 0.033,
     "setup_hr": 0.50
   },
@@ -84,11 +114,18 @@
     "setup_hr": 0.50
   },
 
-  "WELD_TIG": {
-    "formula_type": "count",
-    "description": "Time per weld joint/bead. Setup covers fixturing and tack.",
-    "time_per_unit_hr": 0.083,
+  "WELD_MIG": {
+    "formula_type": "linear",
+    "description": "MIG weld time per inch of weld bead. Use for carbon steel. Faster and cheaper than TIG. cut_length_in = total weld bead length in inches.",
+    "time_per_in_hr": 0.008,
     "setup_hr": 0.25
+  },
+
+  "WELD_TIG": {
+    "formula_type": "linear",
+    "description": "TIG weld time per inch of weld bead. Use for stainless, aluminum, or when drawing specifies TIG. cut_length_in = total weld bead length in inches.",
+    "time_per_in_hr": 0.020,
+    "setup_hr": 0.33
   },
 
   "PAINT": {
@@ -96,8 +133,8 @@
     "description": "Tiered by blank area (proxy for surface area). Includes prep, prime, topcoat.",
     "setup_hr": 0.50,
     "tiers": {
-      "small":  { "max_sq_in": 50,  "time_hr": 0.25 },
-      "medium": { "max_sq_in": 200, "time_hr": 0.50 },
+      "small":  { "max_sq_in": 50,   "time_hr": 0.25 },
+      "medium": { "max_sq_in": 200,  "time_hr": 0.50 },
       "large":  { "max_sq_in": null, "time_hr": 1.00 }
     }
   },
@@ -107,8 +144,8 @@
     "description": "Tiered by blank area. Includes rack, coat, cure, rack-off.",
     "setup_hr": 0.50,
     "tiers": {
-      "small":  { "max_sq_in": 50,  "time_hr": 0.33 },
-      "medium": { "max_sq_in": 200, "time_hr": 0.67 },
+      "small":  { "max_sq_in": 50,   "time_hr": 0.33 },
+      "medium": { "max_sq_in": 200,  "time_hr": 0.67 },
       "large":  { "max_sq_in": null, "time_hr": 1.25 }
     }
   },
@@ -118,8 +155,8 @@
     "description": "Aluminum only. Tiered by blank area. Includes rack, tank time, seal, rack-off.",
     "setup_hr": 0.50,
     "tiers": {
-      "small":  { "max_sq_in": 50,  "time_hr": 0.50 },
-      "medium": { "max_sq_in": 200, "time_hr": 1.00 },
+      "small":  { "max_sq_in": 50,   "time_hr": 0.50 },
+      "medium": { "max_sq_in": 200,  "time_hr": 1.00 },
       "large":  { "max_sq_in": null, "time_hr": 2.00 }
     }
   }

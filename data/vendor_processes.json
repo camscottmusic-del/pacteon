@@ -1,16 +1,18 @@
 {
-  "_comment": "Vendor process rates USD/hr. All values are placeholders — calibrate against real vendor quotes.",
-  "_note": "Process IDs here must match capability tags in the vendor database exactly.",
+  "_comment": "Vendor process rates USD/hr. All values are placeholders — calibrate against real Schneider PO data.",
+  "_note": "Process IDs here must match keys in process_library.json exactly.",
 
-  "LASER_CUT":   { "name": "Laser Cut (Flat)",       "rate_per_hr": 110.0, "setup_hr": 0.25, "form_types": ["plate", "sheet_metal"] },
-  "TUBE_LASER":  { "name": "Tube Laser",              "rate_per_hr": 130.0, "setup_hr": 0.50, "form_types": ["tube"] },
-  "WATERJET":    { "name": "Waterjet Cut",            "rate_per_hr": 110.0, "setup_hr": 0.25, "form_types": ["plate"] },
-  "CNC_MILL":    { "name": "CNC Mill",                "rate_per_hr": 85.0,  "setup_hr": 0.50, "form_types": ["flat_stock", "round_bar", "plate"] },
-  "LATHE":       { "name": "CNC Lathe",               "rate_per_hr": 75.0,  "setup_hr": 0.50, "form_types": ["round_bar"] },
-  "PRESS_BRAKE": { "name": "Press Brake",             "rate_per_hr": 60.0,  "setup_hr": 0.50, "form_types": ["sheet_metal", "plate"] },
-  "TAP":         { "name": "Tapping",                 "rate_per_hr": 55.0,  "setup_hr": 0.25, "form_types": ["sheet_metal", "plate", "flat_stock"] },
-  "WELD_TIG":    { "name": "TIG Weld",                "rate_per_hr": 70.0,  "setup_hr": 0.25, "form_types": ["all"] },
-  "PAINT":       { "name": "Paint",                   "rate_per_hr": 50.0,  "setup_hr": 0.50, "form_types": ["all"] },
-  "POWDER_COAT": { "name": "Powder Coat",             "rate_per_hr": 55.0,  "setup_hr": 0.50, "form_types": ["all"] },
-  "ANODIZE":     { "name": "Anodize (aluminum only)", "rate_per_hr": 60.0,  "setup_hr": 0.50, "form_types": ["all"] }
+  "LASER_CUT":   { "name": "Laser Cut (Flat)",        "rate_per_hr": 110.0, "setup_hr": 0.25, "form_types": ["plate", "sheet_metal"] },
+  "TUBE_LASER":  { "name": "Tube Laser",               "rate_per_hr": 130.0, "setup_hr": 0.50, "form_types": ["tube"] },
+  "WATERJET":    { "name": "Waterjet Cut",             "rate_per_hr": 110.0, "setup_hr": 0.25, "form_types": ["plate"] },
+  "CNC_MILL":    { "name": "CNC Mill",                 "rate_per_hr": 85.0,  "setup_hr": 0.50, "form_types": ["flat_stock", "round_bar", "plate"] },
+  "DRILL":       { "name": "Drill Press",              "rate_per_hr": 45.0,  "setup_hr": 0.25, "form_types": ["plate", "flat_stock", "sheet_metal"] },
+  "LATHE":       { "name": "CNC Lathe",                "rate_per_hr": 75.0,  "setup_hr": 0.50, "form_types": ["round_bar"] },
+  "PRESS_BRAKE": { "name": "Press Brake",              "rate_per_hr": 60.0,  "setup_hr": 0.50, "form_types": ["sheet_metal", "plate"] },
+  "TAP":         { "name": "Tapping",                  "rate_per_hr": 55.0,  "setup_hr": 0.25, "form_types": ["sheet_metal", "plate", "flat_stock"] },
+  "WELD_MIG":    { "name": "MIG Weld",                 "rate_per_hr": 65.0,  "setup_hr": 0.25, "form_types": ["all"], "materials": ["carbon_steel"] },
+  "WELD_TIG":    { "name": "TIG Weld",                 "rate_per_hr": 80.0,  "setup_hr": 0.33, "form_types": ["all"], "materials": ["stainless", "aluminum", "carbon_steel"] },
+  "PAINT":       { "name": "Paint",                    "rate_per_hr": 50.0,  "setup_hr": 0.50, "form_types": ["all"] },
+  "POWDER_COAT": { "name": "Powder Coat",              "rate_per_hr": 55.0,  "setup_hr": 0.50, "form_types": ["all"] },
+  "ANODIZE":     { "name": "Anodize (aluminum only)",  "rate_per_hr": 60.0,  "setup_hr": 0.50, "form_types": ["all"], "materials": ["aluminum"] }
 }

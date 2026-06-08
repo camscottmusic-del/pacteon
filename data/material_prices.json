@@ -1,24 +1,91 @@
 {
-  "_comment": "Prices in USD per square inch. Update from market/purchase history regularly.",
+  "_comment": "Local material pricing hot list — materials Schneider regularly orders. Prices in USD per square inch.",
+  "_note": "Update from actual PO history. These are market-rate placeholders. For tube/bar stock, sq_in pricing is a flat-blank-area proxy until per-linear-ft pricing is implemented.",
+
   "materials": {
     "A36_STEEL": {
       "name": "A36 Mild Steel",
+      "category": "carbon_steel",
       "price_per_sq_in": 0.045,
       "unit": "USD/sq_in",
       "last_updated": "2026-06-06"
     },
+    "A572_GR50": {
+      "name": "A572 Grade 50 High-Strength Low-Alloy Steel",
+      "category": "carbon_steel",
+      "price_per_sq_in": 0.052,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
+    "A500_GRB": {
+      "name": "A500 Grade B Hollow Structural Section (HSS/Tube)",
+      "category": "carbon_steel",
+      "price_per_sq_in": 0.050,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
+    "A1008_CRCS": {
+      "name": "A1008 Cold-Rolled Carbon Steel Sheet",
+      "category": "carbon_steel",
+      "price_per_sq_in": 0.055,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
+    "1018_STEEL": {
+      "name": "AISI 1018 Cold-Drawn Steel Bar",
+      "category": "carbon_steel",
+      "price_per_sq_in": 0.060,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
     "304_STAINLESS": {
       "name": "304 Stainless Steel",
+      "category": "stainless",
       "price_per_sq_in": 0.18,
       "unit": "USD/sq_in",
       "last_updated": "2026-06-06"
     },
+    "304L_STAINLESS": {
+      "name": "304L Stainless Steel (Low Carbon)",
+      "category": "stainless",
+      "price_per_sq_in": 0.19,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
+    "316_STAINLESS": {
+      "name": "316 Stainless Steel",
+      "category": "stainless",
+      "price_per_sq_in": 0.22,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
+    "316L_STAINLESS": {
+      "name": "316L Stainless Steel (Low Carbon)",
+      "category": "stainless",
+      "price_per_sq_in": 0.23,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
     "6061_ALUMINUM": {
       "name": "6061 Aluminum",
+      "category": "aluminum",
       "price_per_sq_in": 0.095,
       "unit": "USD/sq_in",
       "last_updated": "2026-06-06"
+    },
+    "5052_ALUMINUM": {
+      "name": "5052 Aluminum",
+      "category": "aluminum",
+      "price_per_sq_in": 0.082,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
+    },
+    "6063_ALUMINUM": {
+      "name": "6063 Aluminum (Extrusion Alloy)",
+      "category": "aluminum",
+      "price_per_sq_in": 0.078,
+      "unit": "USD/sq_in",
+      "last_updated": "2026-06-08"
     }
-  },
-  "_note": "Add actual Schneider purchase price history here. These are placeholder values."
+  }
 }

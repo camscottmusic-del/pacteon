@@ -1,0 +1,246 @@
+{
+  "_comment": "Full ASTM/AISI material reference for packaging equipment fabrication. When a drawing material spec is not in material_prices.json, look it up here to find the correct local_price_key and material category.",
+  "_note": "aliases covers every designation form that might appear on a drawing. local_price_key maps to material_prices.json — null means pricing not yet set.",
+
+  "A36_STEEL": {
+    "common_name": "A36 Mild Steel",
+    "standard": "ASTM A36",
+    "category": "carbon_steel",
+    "uns": "K02600",
+    "local_price_key": "A36_STEEL",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A36", "ASTM A36", "SA-36", "A-36", "A36 HR", "A36 HOT ROLLED", "GR36", "GRADE 36"]
+  },
+
+  "A572_GR50": {
+    "common_name": "A572 Grade 50 HSLA Steel",
+    "standard": "ASTM A572",
+    "category": "carbon_steel",
+    "uns": "K12821",
+    "local_price_key": "A572_GR50",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A572", "A572 GR50", "A572 GR. 50", "A572-50", "ASTM A572 GR50", "ASTM A572 GRADE 50", "GR50 HSLA", "572-50"]
+  },
+
+  "A572_GR42": {
+    "common_name": "A572 Grade 42 HSLA Steel",
+    "standard": "ASTM A572",
+    "category": "carbon_steel",
+    "uns": null,
+    "local_price_key": "A572_GR50",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A572 GR42", "A572 GR. 42", "A572-42", "ASTM A572 GRADE 42"]
+  },
+
+  "A500_GRB": {
+    "common_name": "A500 Grade B Hollow Structural Section",
+    "standard": "ASTM A500",
+    "category": "carbon_steel",
+    "uns": null,
+    "local_price_key": "A500_GRB",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A500", "A500 GR B", "A500 GR. B", "A500-B", "HSS", "SHS", "RHS", "TUBE A500", "SQUARE TUBE", "RECT TUBE", "RECTANGULAR TUBE"]
+  },
+
+  "A500_GRC": {
+    "common_name": "A500 Grade C Hollow Structural Section",
+    "standard": "ASTM A500",
+    "category": "carbon_steel",
+    "uns": null,
+    "local_price_key": "A500_GRB",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A500 GR C", "A500 GR. C", "A500-C", "HSS GR C"]
+  },
+
+  "A513": {
+    "common_name": "A513 DOM / ERW Mechanical Tubing",
+    "standard": "ASTM A513",
+    "category": "carbon_steel",
+    "uns": null,
+    "local_price_key": "A500_GRB",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A513", "ASTM A513", "DOM", "DOM TUBE", "ERW", "ERW TUBE", "MECHANICAL TUBE", "A513 TYPE 5"]
+  },
+
+  "A1008_CRCS": {
+    "common_name": "A1008 Cold-Rolled Carbon Steel Sheet",
+    "standard": "ASTM A1008",
+    "category": "carbon_steel",
+    "uns": null,
+    "local_price_key": "A1008_CRCS",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A1008", "ASTM A1008", "A1008 CS", "A1008 CS TYPE B", "CR STEEL", "COLD ROLLED", "COLD ROLLED STEEL", "CRS", "CRCS", "1008"]
+  },
+
+  "A1011_HRCS": {
+    "common_name": "A1011 Hot-Rolled Carbon Steel Sheet",
+    "standard": "ASTM A1011",
+    "category": "carbon_steel",
+    "uns": null,
+    "local_price_key": "A36_STEEL",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["A1011", "ASTM A1011", "A1011 CS", "HR STEEL", "HOT ROLLED", "HOT ROLLED STEEL", "HRS", "HRCS", "1011"]
+  },
+
+  "1018_STEEL": {
+    "common_name": "AISI 1018 Cold-Drawn Steel",
+    "standard": "AISI/SAE 1018",
+    "category": "carbon_steel",
+    "uns": "G10180",
+    "local_price_key": "1018_STEEL",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["1018", "AISI 1018", "SAE 1018", "C1018", "1018 CDS", "1018 CD", "COLD DRAWN 1018"]
+  },
+
+  "1020_STEEL": {
+    "common_name": "AISI 1020 Steel",
+    "standard": "AISI/SAE 1020",
+    "category": "carbon_steel",
+    "uns": "G10200",
+    "local_price_key": "1018_STEEL",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["1020", "AISI 1020", "SAE 1020", "C1020"]
+  },
+
+  "1045_STEEL": {
+    "common_name": "AISI 1045 Medium Carbon Steel",
+    "standard": "AISI/SAE 1045",
+    "category": "carbon_steel",
+    "uns": "G10450",
+    "local_price_key": "1018_STEEL",
+    "laser_cuttable": true,
+    "weld_process": "MIG",
+    "aliases": ["1045", "AISI 1045", "SAE 1045", "C1045", "1045 CD", "1045 HR"]
+  },
+
+  "304_STAINLESS": {
+    "common_name": "304 Stainless Steel",
+    "standard": "ASTM A240 / AISI 304",
+    "category": "stainless",
+    "uns": "S30400",
+    "local_price_key": "304_STAINLESS",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["304", "SS304", "304 SS", "AISI 304", "ASTM A240 TP304", "A240 304", "18-8", "18/8 SS", "STAINLESS 304", "S/S 304"]
+  },
+
+  "304L_STAINLESS": {
+    "common_name": "304L Stainless Steel (Low Carbon)",
+    "standard": "ASTM A240 / AISI 304L",
+    "category": "stainless",
+    "uns": "S30403",
+    "local_price_key": "304L_STAINLESS",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["304L", "SS304L", "304L SS", "AISI 304L", "ASTM A240 TP304L", "A240 304L", "S30403"]
+  },
+
+  "316_STAINLESS": {
+    "common_name": "316 Stainless Steel",
+    "standard": "ASTM A240 / AISI 316",
+    "category": "stainless",
+    "uns": "S31600",
+    "local_price_key": "316_STAINLESS",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["316", "SS316", "316 SS", "AISI 316", "ASTM A240 TP316", "A240 316", "316 STAINLESS", "S/S 316", "MARINE GRADE SS"]
+  },
+
+  "316L_STAINLESS": {
+    "common_name": "316L Stainless Steel (Low Carbon)",
+    "standard": "ASTM A240 / AISI 316L",
+    "category": "stainless",
+    "uns": "S31603",
+    "local_price_key": "316L_STAINLESS",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["316L", "SS316L", "316L SS", "AISI 316L", "ASTM A240 TP316L", "A240 316L", "S31603"]
+  },
+
+  "303_STAINLESS": {
+    "common_name": "303 Free-Machining Stainless Steel",
+    "standard": "AISI 303",
+    "category": "stainless",
+    "uns": "S30300",
+    "local_price_key": "304_STAINLESS",
+    "laser_cuttable": false,
+    "weld_process": "TIG",
+    "aliases": ["303", "SS303", "303 SS", "AISI 303", "303 FREE MACHINING", "303 FM"]
+  },
+
+  "17_4_PH": {
+    "common_name": "17-4 PH Stainless Steel",
+    "standard": "ASTM A564 / AMS 5643",
+    "category": "stainless",
+    "uns": "S17400",
+    "local_price_key": "316_STAINLESS",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["17-4", "17-4 PH", "17/4 PH", "17-4PH", "630", "TYPE 630", "S17400", "AMS 5643", "ASTM A564"]
+  },
+
+  "6061_ALUMINUM": {
+    "common_name": "6061 Aluminum",
+    "standard": "ASTM B209 / AMS 2770",
+    "category": "aluminum",
+    "uns": "A96061",
+    "local_price_key": "6061_ALUMINUM",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["6061", "6061 ALUM", "6061 AL", "6061-T6", "6061 T6", "6061-T651", "AL 6061", "ALUMINUM 6061", "ASTM B209 6061"]
+  },
+
+  "5052_ALUMINUM": {
+    "common_name": "5052 Aluminum",
+    "standard": "ASTM B209",
+    "category": "aluminum",
+    "uns": "A95052",
+    "local_price_key": "5052_ALUMINUM",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["5052", "5052 ALUM", "5052 AL", "5052-H32", "5052 H32", "5052-H34", "AL 5052", "ALUMINUM 5052"]
+  },
+
+  "6063_ALUMINUM": {
+    "common_name": "6063 Aluminum (Extrusion Alloy)",
+    "standard": "ASTM B221",
+    "category": "aluminum",
+    "uns": "A96063",
+    "local_price_key": "6063_ALUMINUM",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["6063", "6063 ALUM", "6063 AL", "6063-T5", "6063 T5", "6063-T6", "AL 6063", "ALUMINUM 6063", "ASTM B221 6063"]
+  },
+
+  "2024_ALUMINUM": {
+    "common_name": "2024 Aluminum (Aerospace)",
+    "standard": "ASTM B209 / AMS 2770",
+    "category": "aluminum",
+    "uns": "A92024",
+    "local_price_key": "6061_ALUMINUM",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["2024", "2024 ALUM", "2024 AL", "2024-T3", "2024 T3", "2024-T4", "AL 2024", "ALUMINUM 2024"]
+  },
+
+  "7075_ALUMINUM": {
+    "common_name": "7075 Aluminum (High Strength)",
+    "standard": "ASTM B209 / AMS 2770",
+    "category": "aluminum",
+    "uns": "A97075",
+    "local_price_key": "6061_ALUMINUM",
+    "laser_cuttable": true,
+    "weld_process": "TIG",
+    "aliases": ["7075", "7075 ALUM", "7075 AL", "7075-T6", "7075 T6", "7075-T651", "AL 7075", "ALUMINUM 7075"]
+  }
+}

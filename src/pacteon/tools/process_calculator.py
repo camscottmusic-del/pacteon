@@ -75,6 +75,9 @@ def calc_process_time(
         pierce_time_hr = proc.get("pierce_time_hr", 0.0) * pierce_count
         return cut_time_hr + pierce_time_hr
 
+    if formula == "linear":
+        return proc["time_per_in_hr"] * cut_length_in
+
     if formula == "area_tier":
         return _area_tier(blank_area_sq_in, proc["tiers"])
 

@@ -12,11 +12,26 @@ import anthropic
 from ..models.drawing import DrawingFeature, ExtractedDrawing
 from ..tools.pdf_extractor import extract_pdf_text, extract_pdf_images
 
-_STANDARDS_PATH = Path(__file__).parents[3] / "data" / "drawing_standards.json"
+_STANDARDS_PATH  = Path(__file__).parents[3] / "data" / "drawing_standards.json"
+_PRICES_PATH     = Path(__file__).parents[3] / "data" / "material_prices.json"
+_ASTM_PATH       = Path(__file__).parents[3] / "data" / "astm_material_library.json"
 
 
 def _build_system_prompt() -> str:
     standards = json.loads(_STANDARDS_PATH.read_text(encoding="utf-8"))
+    local_keys = list(json.loads(_PRICES_PATH.read_text(encoding="utf-8"))["materials"].keys())
+    astm_lib   = json.loads(_ASTM_PATH.read_text(encoding="utf-8"))
+
+    # Compact alias → key lookup table injected into prompt (avoids flooding context with full library)
+    alias_lines = []
+    for entry in astm_lib.values():
+        key = entry["local_price_key"]
+        if key:
+            for alias in entry["aliases"]:
+                alias_lines.append(f'  "{alias}" → {key}')
+    alias_table = "\n".join(alias_lines)
+    local_keys_str = ", ".join(local_keys)
+
     standards_context = json.dumps(standards, indent=2)
     return f"""\
 You are an expert manufacturing engineer who reads 2D engineering drawings (sheet metal parts, machined parts, weldments, etc.).
@@ -46,8 +61,16 @@ You have the following ANSI/ASME/ISO drawing standards reference. Use it to corr
 - **sheet_metal** — SHT, SHEET: all ops outsourced (laser→press brake→tap→weld→finish)
 - **weldment** — multi-component assembly
 
-## Material
-Extract full designation from title block or BOM. Use material_spec_prefixes from drawing_standards to match material_key.
+## Material lookup — two-tier system
+1. Extract the full material designation exactly as written on the drawing (title block or BOM).
+2. Match it to a local_price_key using the alias table below. Use the closest match if not exact.
+3. If the material is genuinely unknown and has no close alias, set material_key to the nearest category default (A36_STEEL for unknown carbon steel, 304_STAINLESS for unknown stainless, 6061_ALUMINUM for unknown aluminum) and note the actual spec in the material field.
+
+Known local keys: {local_keys_str}
+
+<material_aliases>
+{alias_table}
+</material_aliases>
 
 ## Features
 Extract every feature using hole_callout_terms, gdt_symbols, weld_symbols, and finish_callout_terms from drawing_standards. Include finish operations only if explicitly called out.
@@ -70,7 +93,7 @@ _EXTRACT_TOOL: anthropic.types.ToolParam = {
             "material": {"type": "string", "description": "Full material name as written on the drawing BOM"},
             "material_key": {
                 "type": "string",
-                "description": "Best-match key from: A36_STEEL, 304_STAINLESS, 6061_ALUMINUM",
+                "description": "Best-match key from the local material list. Use the material_aliases table in the system prompt to find the correct key.",
             },
             "part_form_type": {
                 "type": "string",
