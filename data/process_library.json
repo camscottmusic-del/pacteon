@@ -6,7 +6,12 @@
     "formula_type": "geometry",
     "description": "Time based on cut perimeter and pierce count per material+thickness",
     "pierce_time_hr": 0.0008,
-    "setup_hr": 0.25,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_pierce_hr": 0.0015,
+      "max_hr": 0.25,
+      "_note": "5 min base (program load) + 1.5 min per pierce for path verification. Caps at 15 min."
+    },
     "feed_rates_in_per_min": {
       "A36_STEEL_0048":        200,
       "A36_STEEL_0060":        180,
@@ -48,7 +53,12 @@
     "formula_type": "geometry",
     "description": "Slower than laser; handles thick plate and hard materials",
     "pierce_time_hr": 0.002,
-    "setup_hr": 0.25,
+    "setup_formula": {
+      "base_hr": 0.08,
+      "per_pierce_hr": 0.002,
+      "max_hr": 0.33,
+      "_note": "Waterjet setup slightly longer — abrasive setup, head check."
+    },
     "feed_rates_in_per_min": {
       "A36_STEEL_0250":        15,
       "A36_STEEL_0500":        8,
@@ -67,7 +77,12 @@
     "formula_type": "geometry",
     "description": "Linear cutting length along tube profile",
     "pierce_time_hr": 0.001,
-    "setup_hr": 0.50,
+    "setup_formula": {
+      "base_hr": 0.17,
+      "per_pierce_hr": 0.002,
+      "max_hr": 0.50,
+      "_note": "Tube requires chuck setup and rotation calibration — longer base than flat laser."
+    },
     "feed_rates_in_per_min": {
       "A36_STEEL_0125":        90,
       "A36_STEEL_0188":        65,
@@ -80,17 +95,29 @@
   },
 
   "PRESS_BRAKE": {
-    "formula_type": "count",
-    "description": "Time per bend including positioning and stroke. Setup covers tool selection and first-piece setup.",
-    "time_per_unit_hr": 0.05,
-    "setup_hr": 0.50
+    "formula_type": "bend_geometry",
+    "description": "Time per bend scales with both bend count and bend chord length. Longer bends require more positioning, back-gauge adjustment, and angle checking across the full length.",
+    "time_per_bend_hr": 0.05,
+    "time_per_in_hr": 0.0020,
+    "setup_formula": {
+      "base_hr": 0.08,
+      "per_bend_hr": 0.03,
+      "max_hr": 0.50,
+      "_note": "5 min base for tool load + 2 min per additional bend for angle adjustment/tryout."
+    },
+    "_calibration": "time_per_in_hr: 0.002 = ~7 sec/inch of bend length for positioning/handling. Tune against real brake tickets."
   },
 
   "TAP": {
     "formula_type": "count",
     "description": "Time per tapped hole. Assumes standard machine tapping.",
     "time_per_unit_hr": 0.012,
-    "setup_hr": 0.25
+    "setup_formula": {
+      "base_hr": 0.033,
+      "per_tap_hr": 0.0,
+      "max_hr": 0.033,
+      "_note": "Fixed 2 min — tap chuck load. Count doesn't change setup."
+    }
   },
 
   "DRILL": {
@@ -102,22 +129,32 @@
 
   "CNC_MILL": {
     "formula_type": "count",
-    "description": "Time per milled feature — pockets, slots, contours, counterbores, countersinks, holes >0.5\" dia, or any hole with tight tolerance. Setup covers program load and fixturing.",
+    "description": "Time per milled feature (hole, pocket, slot, contour op). Setup covers program load and fixturing.",
     "time_per_unit_hr": 0.033,
-    "setup_hr": 0.50
+    "setup_formula": {
+      "base_hr": 0.33,
+      "per_feature_hr": 0.033,
+      "max_hr": 0.75,
+      "_note": "20 min base (program load + fixture) + 2 min per feature. CNC setup is non-trivial."
+    }
   },
 
   "LATHE": {
     "formula_type": "count",
     "description": "Time per turned feature. Setup covers chuck and tool setup.",
     "time_per_unit_hr": 0.05,
-    "setup_hr": 0.50
+    "setup_formula": {
+      "base_hr": 0.25,
+      "per_feature_hr": 0.033,
+      "max_hr": 0.75,
+      "_note": "15 min base for chuck and tool selection."
+    }
   },
 
-  "WELD_MIG": {
-    "formula_type": "linear",
-    "description": "MIG weld time per inch of weld bead. Use for carbon steel. Faster and cheaper than TIG. cut_length_in = total weld bead length in inches.",
-    "time_per_in_hr": 0.008,
+  "WELD_TIG": {
+    "formula_type": "count",
+    "description": "Time per weld joint/bead. Setup covers fixturing and tack.",
+    "time_per_unit_hr": 0.083,
     "setup_hr": 0.25
   },
 
@@ -133,8 +170,8 @@
     "description": "Tiered by blank area (proxy for surface area). Includes prep, prime, topcoat.",
     "setup_hr": 0.50,
     "tiers": {
-      "small":  { "max_sq_in": 50,   "time_hr": 0.25 },
-      "medium": { "max_sq_in": 200,  "time_hr": 0.50 },
+      "small":  { "max_sq_in": 50,  "time_hr": 0.25 },
+      "medium": { "max_sq_in": 200, "time_hr": 0.50 },
       "large":  { "max_sq_in": null, "time_hr": 1.00 }
     }
   },
@@ -144,8 +181,8 @@
     "description": "Tiered by blank area. Includes rack, coat, cure, rack-off.",
     "setup_hr": 0.50,
     "tiers": {
-      "small":  { "max_sq_in": 50,   "time_hr": 0.33 },
-      "medium": { "max_sq_in": 200,  "time_hr": 0.67 },
+      "small":  { "max_sq_in": 50,  "time_hr": 0.33 },
+      "medium": { "max_sq_in": 200, "time_hr": 0.67 },
       "large":  { "max_sq_in": null, "time_hr": 1.25 }
     }
   },
@@ -155,8 +192,8 @@
     "description": "Aluminum only. Tiered by blank area. Includes rack, tank time, seal, rack-off.",
     "setup_hr": 0.50,
     "tiers": {
-      "small":  { "max_sq_in": 50,   "time_hr": 0.50 },
-      "medium": { "max_sq_in": 200,  "time_hr": 1.00 },
+      "small":  { "max_sq_in": 50,  "time_hr": 0.50 },
+      "medium": { "max_sq_in": 200, "time_hr": 1.00 },
       "large":  { "max_sq_in": null, "time_hr": 2.00 }
     }
   }

@@ -42,9 +42,22 @@ You have the following ANSI/ASME/ISO drawing standards reference. Use it to corr
 {standards_context}
 </drawing_standards>
 
+## Drawing zone grid
+Schneider drawings use an ASME-style zone grid: letters (A, B, C, D...) along the vertical border
+top-to-bottom, numbers (1, 2, 3, 4...) along the horizontal border. Zone A4 is top-left, A1 is
+top-right, D1 is bottom-right. The title block is always in the lower-right corner (zone row D or
+the bottom number column).
+
+Use zones to locate and cross-reference features:
+- Identify which zone each view occupies (e.g. "top view: B2-C3", "front view: C1-C2").
+- When a feature appears in one view, confirm it in the cross-reference view using zones.
+- Section cuts (SECTION A-A, DETAIL B) reference zones — find the cutting-plane line, then read
+  the section view in the zone where the label points.
+- Report each feature's zone as the zone label where the callout or leader line originates.
+
 ## Dimension rules — critical
-- Dimensions in PARENTHESES e.g. (4.44) = REFERENCE — see drawing_standards.dimension_notation. NEVER use for blank_length_in or blank_width_in.
-- Read ALL views: top, front, right side, section, auxiliary, detail. Cross-reference them.
+- Dimensions in PARENTHESES e.g. (4.44) = REFERENCE only. NEVER use for blank_length_in or blank_width_in.
+- Read ALL views: top, front, right side, section, auxiliary, detail. Cross-reference them using zones.
 
 ## Blank dimensions (cutlist / material cost)
 - blank_length_in and blank_width_in = FLAT BLANK size before any forming.
@@ -73,7 +86,19 @@ Known local keys: {local_keys_str}
 </material_aliases>
 
 ## Features
-Extract every feature using hole_callout_terms, gdt_symbols, weld_symbols, and finish_callout_terms from drawing_standards. Include finish operations only if explicitly called out.
+Extract every feature using hole_callout_terms, gdt_symbols, weld_symbols, and finish_callout_terms from drawing_standards.
+
+### Finish features — include any finish callout that requires a vendor to apply a surface treatment.
+- INCLUDE: "paint machine color", "paint safety yellow", powder coat, anodize, plating, any
+  specific color or coating callout. These all represent real vendor operations with cost.
+- A finish callout in the title block or general notes is sufficient — it does not need to be
+  on the part geometry itself.
+
+### Exclude from features entirely (no cost impact):
+"as fabricated", "no finish", "mill finish", "use model geometry", "interpret drawing per",
+"interpret per ASME Y14.5", removable labels, part markings, revision notes, general tolerance
+notes, drafting methodology notes, and any annotation that does not represent a discrete
+manufacturing operation performed by the vendor on this specific part.
 
 Always call the extract_drawing tool — do not respond with plain text.
 """

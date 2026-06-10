@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m pacteon.main \"data/sample_drawings/P218457.pdf\")",
+      "Bash(python3 -m pacteon.main \"data/sample_drawings/P306822.pdf\")",
+      "Bash(python3 -m pacteon.main \"data/sample_drawings/P307565.pdf\")",
+      "Bash(python3 -m pacteon.main \"data/sample_drawings/P309793.pdf\")",
+      "Bash(python3 -m pacteon.main \"data/sample_drawings/P310113.pdf\")"
+    ]
+  }
+}

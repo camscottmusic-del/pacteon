@@ -1,8 +1,8 @@
 """
-Deterministic process time calculator.
+Deterministic process time and cost calculator.
 
-Given a process ID and feature parameters, returns time_hr using
-formulas from process_library.json. No AI involved — pure math.
+Given a process ID and feature parameters, returns time_hr and setup_hr
+using formulas from process_library.json. No AI involved — pure math.
 """
 import json
 from pathlib import Path
@@ -20,10 +20,9 @@ def _load_vendors() -> dict:
 
 
 def _material_thickness_key(material_key: str, thickness_in: float | None) -> str:
-    """Build the feed-rate lookup key, e.g. '304_STAINLESS_0125'."""
+    """Build the feed-rate lookup key, e.g. 'A36_STEEL_0250'."""
     if not thickness_in:
         return "DEFAULT"
-    # Convert thickness to 4-digit string: 0.125 → "0125"
     t_str = f"{thickness_in:.3f}".replace(".", "")
     return f"{material_key}_{t_str}"
 
@@ -36,6 +35,53 @@ def _area_tier(blank_area_sq_in: float, tiers: dict) -> float:
     return list(tiers.values())[-1]["time_hr"]
 
 
+def calc_setup_time(
+    process_id: str,
+    quantity: int = 1,
+    pierce_count: int = 0,
+) -> float:
+    """
+    Return setup time in hours for one process, scaled by features/size.
+
+    Setup is dynamic — a 2-hole bracket has a shorter laser setup than a
+    40-hole plate. Formulas live in process_library.json under 'setup_formula'.
+
+    Args:
+        process_id:   Key matching process_library.json
+        quantity:     Number of operations (bends, welds, features) — drives
+                      setup for count-based processes
+        pierce_count: Number of pierce points — drives setup for geometry
+                      processes (LASER_CUT, WATERJET, TUBE_LASER)
+    """
+    library = _load_library()
+    if process_id not in library:
+        raise ValueError(f"Unknown process '{process_id}'.")
+
+    proc = library[process_id]
+    sf = proc.get("setup_formula")
+    if not sf:
+        return 0.0
+
+    base = sf["base_hr"]
+
+    if "per_pierce_hr" in sf:
+        # Geometry processes: setup scales with pierce count
+        dynamic = base + pierce_count * sf["per_pierce_hr"]
+    elif "per_bend_hr" in sf:
+        # Press brake: each additional bend may need angle adjust / tool change
+        dynamic = base + max(0, quantity - 1) * sf["per_bend_hr"]
+    elif "per_weld_hr" in sf:
+        # Weld: each joint adds fixture time
+        dynamic = base + quantity * sf["per_weld_hr"]
+    elif "per_feature_hr" in sf:
+        # Mill / lathe / finish: features add program/tool complexity
+        dynamic = base + quantity * sf["per_feature_hr"]
+    else:
+        dynamic = base
+
+    return min(dynamic, sf["max_hr"])
+
+
 def calc_process_time(
     process_id: str,
     quantity: int = 1,
@@ -46,16 +92,16 @@ def calc_process_time(
     pierce_count: int = 0,
 ) -> float:
     """
-    Return estimated run time in hours (excluding setup) for one process operation.
+    Return run time in hours (excluding setup) for one process operation.
 
     Args:
-        process_id:       Key matching process_library.json (e.g. "LASER_CUT")
+        process_id:       Key matching process_library.json
         quantity:         Number of operations (bends, taps, welds, etc.)
-        material_key:     Material key (e.g. "304_STAINLESS")
-        thickness_in:     Material thickness in inches (for geometry formulas)
-        blank_area_sq_in: Blank length × width (for area_tier formulas)
-        cut_length_in:    Total cut perimeter length (for geometry/laser formulas)
-        pierce_count:     Number of pierce points / holes (for laser formulas)
+        material_key:     e.g. 'A36_STEEL', '304_STAINLESS'
+        thickness_in:     Material thickness (for geometry feed-rate lookup)
+        blank_area_sq_in: Blank area (for area_tier finish processes)
+        cut_length_in:    Total cut perimeter (for geometry/laser formulas)
+        pierce_count:     Number of pierce points (for laser formulas)
     """
     library = _load_library()
     if process_id not in library:
@@ -66,6 +112,12 @@ def calc_process_time(
 
     if formula == "count":
         return proc["time_per_unit_hr"] * quantity
+
+    if formula == "bend_geometry":
+        # Each bend: base time + length-scaling for positioning/handling.
+        # cut_length_in = bend chord length in inches (passed by foreman).
+        bend_length = cut_length_in if cut_length_in else 12.0  # 12" default if not provided
+        return quantity * (proc["time_per_bend_hr"] + bend_length * proc["time_per_in_hr"])
 
     if formula == "geometry":
         feed_key = _material_thickness_key(material_key, thickness_in)
@@ -81,24 +133,28 @@ def calc_process_time(
     if formula == "area_tier":
         return _area_tier(blank_area_sq_in, proc["tiers"])
 
+    if formula == "area_linear":
+        # Continuously scales with blank area — larger part = more surface = more paint/coat time.
+        # blank_area is used as a proxy for total painted surface area.
+        base = proc["base_time_hr"]
+        run = base + blank_area_sq_in * proc["time_per_sq_in_hr"]
+        return min(run, proc.get("max_time_hr", run))
+
     raise ValueError(f"Unknown formula_type '{formula}' for process '{process_id}'.")
 
 
 def calc_process_cost(
     process_id: str,
-    time_hr: float,
-    include_setup: bool = True,
+    run_time_hr: float,
+    setup_time_hr: float,
 ) -> tuple[float, float]:
     """
-    Return (setup_cost, run_cost) for a process given run time in hours.
+    Return (setup_cost, run_cost) given pre-computed times.
     Total cost = setup_cost + run_cost.
     """
     vendors = _load_vendors()
     if process_id not in vendors:
         raise ValueError(f"Unknown process '{process_id}'. Add it to data/vendor_processes.json.")
 
-    proc = vendors[process_id]
-    rate = proc["rate_per_hr"]
-    setup_cost = proc["setup_hr"] * rate if include_setup else 0.0
-    run_cost = time_hr * rate
-    return setup_cost, run_cost
+    rate = vendors[process_id]["rate_per_hr"]
+    return setup_time_hr * rate, run_time_hr * rate
