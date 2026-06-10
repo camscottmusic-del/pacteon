@@ -12,7 +12,7 @@ import anthropic
 
 from ..models.drawing import ExtractedDrawing
 from ..models.machine import MachineProcess
-from ..tools.process_calculator import calc_process_time, calc_process_cost
+from ..tools.process_calculator import calc_process_time, calc_process_cost, calc_setup_time
 
 _VENDORS_PATH = Path(__file__).parents[3] / "data" / "vendor_processes.json"
 
@@ -29,16 +29,34 @@ You are NOT routing through a factory floor. You are answering:
 - **flat_stock**: All ops on CNC_MILL.
 - **tube**: Primary cut on TUBE_LASER. Secondary ops → CNC_MILL if needed.
 - **round_bar**: Primary turning on LATHE. Secondary milling → CNC_MILL.
-- **sheet_metal**: LASER_CUT profile → PRESS_BRAKE for bends → TAP for threads → WELD_TIG if called out → finish ops (PAINT, POWDER_COAT, or ANODIZE) if called out.
 - **weldment**: Each component by its own form_type, then WELD_TIG for assembly.
+
+### sheet_metal — route depends on whether the part is formed
+
+- **sheet_metal, NOT formed (is_formed = false, no bend features)**:
+  LASER_CUT for the flat profile only. TAP for any threaded holes. Finish if called out.
+  Do NOT assign PRESS_BRAKE.
+
+- **sheet_metal, IS formed (is_formed = true, has bend features)**:
+  LASER_CUT for the flat blank profile → PRESS_BRAKE (one assignment, quantity = total bend count)
+  → TAP for threaded holes (done post-forming) → WELD_TIG only if weld symbols are explicitly present
+  → Finish (PAINT, POWDER_COAT, or ANODIZE) only if explicitly called out.
 
 ## Rules
 - Every feature must map to exactly one process_id.
-- For geometry-based processes (LASER_CUT, WATERJET, TUBE_LASER): provide cut_length_in (estimate the cut perimeter from part dimensions if not explicit) and pierce_count (number of holes/slots).
-- For count-based processes (PRESS_BRAKE, TAP, CNC_MILL, LATHE, WELD_TIG): provide quantity (number of operations).
-- For finish processes (PAINT, POWDER_COAT, ANODIZE): quantity = 1 (area tier is calculated from blank dimensions).
-- Only include finish operations if explicitly called out in drawing notes or finish specification.
-- Do NOT include estimated_time_hr — time is calculated by the system.
+- For geometry-based processes (LASER_CUT, WATERJET, TUBE_LASER): provide cut_length_in
+  (estimate the cut perimeter from blank dimensions if not explicit on the drawing) and
+  pierce_count (total number of holes + slots that require a laser pierce).
+- For count-based processes (TAP, CNC_MILL, LATHE, WELD_TIG): provide
+  quantity (number of operations — tapped holes, welds, etc.).
+- For PRESS_BRAKE: provide quantity (number of bends) AND cut_length_in (the bend chord
+  length in inches — typically the longer blank dimension for sheet metal). A 48" panel
+  takes far more time to brake than a 4" bracket; the length drives positioning and
+  handling time.
+- For finish processes (PAINT, POWDER_COAT, ANODIZE): quantity = 1.
+- Only include finish operations if explicitly called out in drawing notes or finish spec.
+- Do NOT invent PRESS_BRAKE assignments on flat parts with no bend features.
+- Do NOT include estimated_time_hr — time is calculated deterministically by the system.
 
 Always call assign_vendor_processes with your complete assignments.
 """
@@ -117,16 +135,24 @@ class ShopForemanAgent:
             vendor_proc = self._vendors[process_id]
             rate = vendor_proc["rate_per_hr"]
 
-            time_hr = calc_process_time(
+            quantity    = a.get("quantity", 1)
+            pierce_count = a.get("pierce_count", 0)
+
+            run_time_hr = calc_process_time(
                 process_id=process_id,
-                quantity=a.get("quantity", 1),
+                quantity=quantity,
                 material_key=drawing.material_key or "DEFAULT",
                 thickness_in=drawing.thickness_in,
                 blank_area_sq_in=blank_area,
                 cut_length_in=a.get("cut_length_in", 0.0),
-                pierce_count=a.get("pierce_count", 0),
+                pierce_count=pierce_count,
             )
-            setup_cost, run_cost = calc_process_cost(process_id, time_hr)
+            setup_time_hr = calc_setup_time(
+                process_id=process_id,
+                quantity=quantity,
+                pierce_count=pierce_count,
+            )
+            setup_cost, run_cost = calc_process_cost(process_id, run_time_hr, setup_time_hr)
             labor_cost = setup_cost + run_cost
 
             processes.append(MachineProcess(
@@ -135,8 +161,8 @@ class ShopForemanAgent:
                 machine_id=process_id,
                 machine_type=vendor_proc["name"],
                 tool_used=process_id,
-                estimated_time_hr=time_hr,
-                setup_time_hr=vendor_proc["setup_hr"],
+                estimated_time_hr=run_time_hr,
+                setup_time_hr=setup_time_hr,
                 rate_per_hr=rate,
                 labor_cost=labor_cost,
                 notes=a.get("notes"),
