@@ -124,7 +124,12 @@
     "formula_type": "count",
     "description": "Drill press time per hole. Use for simple through/blind holes ≤ 0.5\" dia with no tight tolerance callout. Cheaper than CNC mill.",
     "time_per_unit_hr": 0.017,
-    "setup_hr": 0.25
+    "setup_formula": {
+      "base_hr": 0.08,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.08,
+      "_note": "Fixed 5 min — drill press setup is minimal."
+    }
   },
 
   "CNC_MILL": {
@@ -152,49 +157,59 @@
   },
 
   "WELD_TIG": {
-    "formula_type": "count",
-    "description": "Time per weld joint/bead. Setup covers fixturing and tack.",
-    "time_per_unit_hr": 0.083,
-    "setup_hr": 0.25
-  },
-
-  "WELD_TIG": {
     "formula_type": "linear",
-    "description": "TIG weld time per inch of weld bead. Use for stainless, aluminum, or when drawing specifies TIG. cut_length_in = total weld bead length in inches.",
+    "description": "TIG weld time per inch of weld bead. cut_length_in = total weld bead length in inches.",
     "time_per_in_hr": 0.020,
-    "setup_hr": 0.33
+    "setup_formula": {
+      "base_hr": 0.08,
+      "per_weld_hr": 0.017,
+      "max_hr": 0.50,
+      "_note": "5 min base fixturing + 1 min per weld joint."
+    }
   },
 
   "PAINT": {
-    "formula_type": "area_tier",
-    "description": "Tiered by blank area (proxy for surface area). Includes prep, prime, topcoat.",
-    "setup_hr": 0.50,
-    "tiers": {
-      "small":  { "max_sq_in": 50,  "time_hr": 0.25 },
-      "medium": { "max_sq_in": 200, "time_hr": 0.50 },
-      "large":  { "max_sq_in": null, "time_hr": 1.00 }
-    }
+    "formula_type": "area_linear",
+    "description": "Spray paint (machine color or specified color). Cost scales continuously with blank area as a proxy for painted surface area.",
+    "base_time_hr": 0.033,
+    "time_per_sq_in_hr": 0.00025,
+    "max_time_hr": 2.0,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.05,
+      "_note": "Fixed — rack and hang time per part."
+    },
+    "_calibration": "base=2min handling + 0.00025hr/sq_in spray. 27sq_in→$4.40, 200sq_in→$7.75, 1000sq_in→$16.25."
   },
 
   "POWDER_COAT": {
-    "formula_type": "area_tier",
-    "description": "Tiered by blank area. Includes rack, coat, cure, rack-off.",
-    "setup_hr": 0.50,
-    "tiers": {
-      "small":  { "max_sq_in": 50,  "time_hr": 0.33 },
-      "medium": { "max_sq_in": 200, "time_hr": 0.67 },
-      "large":  { "max_sq_in": null, "time_hr": 1.25 }
-    }
+    "formula_type": "area_linear",
+    "description": "Electrostatic powder coat. Heavier per-area cost than paint — thicker coat, oven cure.",
+    "base_time_hr": 0.033,
+    "time_per_sq_in_hr": 0.00040,
+    "max_time_hr": 2.5,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.05,
+      "_note": "Fixed — rack and hang time per part."
+    },
+    "_calibration": "0.00040hr/sq_in. Tune against real powder coat invoices."
   },
 
   "ANODIZE": {
-    "formula_type": "area_tier",
-    "description": "Aluminum only. Tiered by blank area. Includes rack, tank time, seal, rack-off.",
-    "setup_hr": 0.50,
-    "tiers": {
-      "small":  { "max_sq_in": 50,  "time_hr": 0.50 },
-      "medium": { "max_sq_in": 200, "time_hr": 1.00 },
-      "large":  { "max_sq_in": null, "time_hr": 2.00 }
-    }
+    "formula_type": "area_linear",
+    "description": "Aluminum only. Tank time scales with surface area.",
+    "base_time_hr": 0.033,
+    "time_per_sq_in_hr": 0.00060,
+    "max_time_hr": 3.0,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.05,
+      "_note": "Fixed — rack and hang time per part."
+    },
+    "_calibration": "0.00060hr/sq_in. Tank time is the dominant cost driver."
   }
 }

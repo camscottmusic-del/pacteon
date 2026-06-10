@@ -25,9 +25,11 @@ def _build_system_prompt() -> str:
     # Compact alias → key lookup table injected into prompt (avoids flooding context with full library)
     alias_lines = []
     for entry in astm_lib.values():
-        key = entry["local_price_key"]
+        if not isinstance(entry, dict):
+            continue
+        key = entry.get("local_price_key")
         if key:
-            for alias in entry["aliases"]:
+            for alias in entry.get("aliases", []):
                 alias_lines.append(f'  "{alias}" → {key}')
     alias_table = "\n".join(alias_lines)
     local_keys_str = ", ".join(local_keys)

@@ -178,6 +178,11 @@
   },
   "active": "3df0539ef4b9c621",
   "lastOpenFiles": [
+    "memory/project_context.md",
+    "memory/project_backlog.md",
+    "memory/MEMORY.md",
+    "memory",
+    "data/astm_material_library.json",
     "data/calibration_reference.json",
     "Supporting Data.xlsx",
     "data/sample_drawings/P307565.pdf",
@@ -185,8 +190,6 @@
     "data/sample_drawings/P309793.pdf",
     "data/sample_drawings/P306822.pdf",
     "data/sample_drawings/P304314.pdf",
-    "data/sample_drawings/P218457.pdf",
-    "data/sample_drawings/P118909 (1).pdf",
-    "Vendor Database.xlsx"
+    "data/sample_drawings/P218457.pdf"
   ]
 }
