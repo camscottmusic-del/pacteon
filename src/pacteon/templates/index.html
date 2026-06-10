@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Should-Cost Calculator | Schneider Packaging</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --glass-bg:     rgba(255,255,255,0.055);
+      --glass-border: rgba(255,255,255,0.1);
+      --glass-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07);
+      --glass-blur:   blur(24px) saturate(180%);
+      --accent:       #E8531D;
+      --accent-glow:  rgba(232,83,29,0.35);
+      --text-primary:   rgba(255,255,255,0.95);
+      --text-secondary: rgba(255,255,255,0.5);
+      --text-dim:       rgba(255,255,255,0.28);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      background: #070c1a;
+      background-image:
+        radial-gradient(ellipse 100% 55% at 50% -5%,  rgba(55,95,200,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 50%  40% at 90% 90%,  rgba(232,83,29,0.07) 0%, transparent 60%);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,12,26,0.72);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .header-logos { display: flex; align-items: center; gap: 1.75rem; }
+    .header-logos img {
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+      opacity: 0.85;
+    }
+    .header-logos img:first-child { height: 36px; }
+    .header-logos img:last-child  { height: 24px; }
+    .header-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.12); }
+    .header-badge {
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    main { max-width: 820px; margin: 3.5rem auto; padding: 0 1.5rem 5rem; }
+
+    .page-eyebrow {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.55rem;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 0.45rem;
+    }
+    .page-subtitle {
+      font-size: 0.93rem;
+      color: var(--text-secondary);
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+
+    /* ── Glass Card ──────────────────────────────────────────── */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--glass-shadow);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 1.3rem;
+    }
+
+    /* ── Mode Tabs ───────────────────────────────────────────── */
+    .mode-tabs {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 1.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-secondary);
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      letter-spacing: -0.01em;
+      font-family: inherit;
+    }
+    .mode-tab.active {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.35);
+    }
+
+    /* ── Upload Zone ─────────────────────────────────────────── */
+    .upload-zone {
+      border: 1.5px dashed rgba(255,255,255,0.14);
+      border-radius: var(--radius-md);
+      padding: 2.75rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      margin-bottom: 1.5rem;
+    }
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(232,83,29,0.05);
+      box-shadow: 0 0 0 1px rgba(232,83,29,0.12), 0 0 36px rgba(232,83,29,0.07);
+    }
+    .upload-icon {
+      width: 50px; height: 50px;
+      margin: 0 auto 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .upload-zone p { color: var(--text-secondary); font-size: 0.92rem; }
+    .upload-zone strong { color: var(--text-primary); font-weight: 600; }
+    .upload-hint { font-size: 0.77rem; color: var(--text-dim); margin-top: 0.3rem; }
+    .file-name {
+      margin-top: 0.8rem;
+      font-size: 0.82rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    #file-input, #batch-file-input { display: none; }
+
+    /* ── Batch File List ─────────────────────────────────────── */
+    #batch-view { display: none; }
+
+    .batch-file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 252px;
+      overflow-y: auto;
+      margin-bottom: 0.75rem;
+      padding-right: 2px;
+    }
+    .batch-file-list::-webkit-scrollbar { width: 3px; }
+    .batch-file-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .batch-file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.7rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius-sm);
+      font-size: 0.81rem;
+      color: var(--text-secondary);
+      animation: fadein 0.15s ease;
+    }
+    .batch-file-item .fi-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .batch-file-item .fi-remove {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.2);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+    .batch-file-item .fi-remove:hover { color: #f87171; }
+
+    .batch-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    .batch-meta .count { color: var(--accent); font-weight: 700; }
+    .batch-meta .limit { color: var(--text-dim); }
+
+    /* ── Form ────────────────────────────────────────────────── */
+    .form-row {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-row label {
+      font-size: 0.87rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .form-row input[type="number"] {
+      width: 88px;
+      padding: 0.55rem 0.85rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.93rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-row input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232,83,29,0.15);
+    }
+    input[type="number"]::-webkit-inner-spin-button { opacity: 0.4; }
+
+    /* ── Buttons ─────────────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #f4622a 0%, #c83c10 100%);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.15) inset, 0 6px 24px var(--accent-glow);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.2) inset, 0 12px 36px rgba(232,83,29,0.5);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 0.65rem 1.75rem;
+      font-size: 0.87rem;
+      font-weight: 500;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-erp {
+      background: rgba(52,211,153,0.08);
+      color: #34d399;
+      border: 1px solid rgba(52,211,153,0.25);
+      padding: 0.65rem 1.75rem;
+      font-size: 0.87rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s, color 0.2s;
+    }
+    .btn-erp:hover {
+      background: rgba(52,211,153,0.16);
+      border-color: rgba(52,211,153,0.4);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(52,211,153,0.12);
+    }
+    .btn-erp.sent {
+      background: rgba(52,211,153,0.2);
+      border-color: rgba(52,211,153,0.5);
+      color: #6ee7b7;
+      transform: none;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    /* ── Terminal ────────────────────────────────────────────── */
+    #terminal-section { display: none; margin-bottom: 1.25rem; }
+
+    .terminal-window {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.09);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.65);
+    }
+
+    .terminal-titlebar {
+      background: rgba(20,22,30,0.92);
+      backdrop-filter: blur(12px);
+      padding: 0.65rem 1rem;
+      display: flex; align-items: center; gap: 0.45rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green  { background: #28c840; }
+
+    .terminal-filename {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.28);
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    .terminal-body {
+      background: #060b17;
+      padding: 1.25rem 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.79rem;
+      line-height: 1.8;
+      min-height: 160px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+    .terminal-body::-webkit-scrollbar { width: 4px; }
+    .terminal-body::-webkit-scrollbar-track { background: transparent; }
+    .terminal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+    /* ── Progress Footer ─────────────────────────────────────── */
+    .terminal-footer {
+      background: rgba(12,16,26,0.97);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 0.6rem 1rem 0.7rem;
+      display: none;
+    }
+    .terminal-footer.active { display: block; }
+
+    .stage-label {
+      display: block;
+      font-size: 0.63rem;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.45rem;
+    }
+
+    .pipeline-progress {
+      height: 3px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .pipeline-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, #c83c10, #f4622a);
+      transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .pipeline-progress-fill.shimmer {
+      width: 100%;
+      background: linear-gradient(90deg,
+        rgba(200,60,16,0.55) 0%,
+        rgba(244,98,42,1)    40%,
+        rgba(244,98,42,1)    60%,
+        rgba(200,60,16,0.55) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer-move 1.9s ease-in-out infinite;
+    }
+
+    @keyframes shimmer-move {
+      0%   { background-position: 200% center; }
+      100% { background-position: -100% center; }
+    }
+
+    /* ── Terminal Lines ──────────────────────────────────────── */
+    .term-line {
+      display: block;
+      white-space: pre;
+      animation: fadein 0.15s ease;
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+    .term-stage  { color: #60a5fa; font-weight: 700; }
+    .term-info   { color: rgba(225,232,240,0.88); }
+    .term-dim    { color: rgba(255,255,255,0.25); }
+    .term-success{ color: #4ade80; }
+    .term-total  { color: #fbbf24; font-weight: 700; }
+    .term-error  { color: #f87171; }
+
+    .cursor {
+      display: inline-block;
+      width: 7px; height: 1em;
+      background: rgba(225,232,240,0.75);
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+      border-radius: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── Results ─────────────────────────────────────────────── */
+    #results { display: none; }
+
+    .part-banner {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid rgba(232,83,29,0.45);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+      gap: 1rem;
+      box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(232,83,29,0.08);
+    }
+    .part-banner .field label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+    .part-banner .field span {
+      font-size: 0.87rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* ── Table ───────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0 0.75rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    thead th:nth-child(n+2) { text-align: right; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.045); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td {
+      padding: 0.8rem 0.75rem;
+      color: rgba(255,255,255,0.75);
+      vertical-align: top;
+    }
+    tbody td:nth-child(n+2) {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+    }
+
+    /* ── Summary + Routing ───────────────────────────────────── */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+    .summary-lines { font-size: 0.87rem; }
+    .summary-lines .row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.55rem 0;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .summary-lines .row .val {
+      font-variant-numeric: tabular-nums;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.83rem;
+      color: var(--text-primary);
+    }
+    .summary-lines .row.total {
+      margin-top: 0.5rem;
+      border-bottom: none;
+      border-top: 1px solid rgba(255,255,255,0.09);
+      padding-top: 0.8rem;
+    }
+    .summary-lines .row.total span:first-child {
+      font-size: 0.93rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .summary-lines .row.total .val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+
+    .routing-list { list-style: none; counter-reset: step; }
+    .routing-list li {
+      counter-increment: step;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      padding: 0.55rem 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.045);
+    }
+    .routing-list li:last-child { border-bottom: none; }
+    .routing-list li::before {
+      content: counter(step, decimal-leading-zero);
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 22px;
+      padding-top: 2px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ── Result Actions ──────────────────────────────────────── */
+    .result-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1.75rem;
+    }
+
+    /* ── Error ───────────────────────────────────────────────── */
+    .error-box {
+      background: rgba(248,81,73,0.1);
+      border: 1px solid rgba(248,81,73,0.28);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.1rem;
+      color: #f87171;
+      font-size: 0.87rem;
+      display: none;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 600px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      main { margin: 2rem auto; }
+      .page-title { font-size: 1.65rem; }
+      header { padding: 0 1.25rem; }
+      .result-actions { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logos">
+    <img src="https://pacteon.com/hubfs/Website%20Images%202026%20-%20New%20Breed/Icons%202026%20-%20New%20Breed/Schneider%20Logo-01.png" alt="Schneider Packaging" />
+    <div class="header-divider"></div>
+    <img src="https://pacteon.com/hubfs/Pacteon%20Landscape.png" alt="Pacteon Group" />
+  </div>
+  <div class="header-badge">Internal Tool</div>
+</header>
+
+<main>
+  <p class="page-eyebrow">Pacteon &nbsp;/&nbsp; wonderful.intelligence</p>
+  <h1 class="page-title">Should-Cost Calculator</h1>
+  <p class="page-subtitle">Upload an engineering drawing PDF to receive a line-item vendor quote and process routing.</p>
+
+  <!-- Upload -->
+  <div id="upload-section">
+    <div class="card">
+
+      <!-- Mode tabs -->
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-single" onclick="switchMode('single')">Single Drawing</button>
+        <button class="mode-tab"        id="tab-batch"  onclick="switchMode('batch')">Batch Load &nbsp;&middot;&nbsp; up to 12</button>
+      </div>
+
+      <!-- Single view -->
+      <div id="single-view">
+        <div class="upload-zone" id="drop-zone">
+          <div class="upload-icon">📄</div>
+          <p><strong>Click to upload</strong> or drag and drop</p>
+          <p class="upload-hint">PDF only &mdash; engineering drawings</p>
+          <p class="file-name" id="file-label"></p>
+        </div>
+        <input type="file" id="file-input" accept=".pdf" />
+
+        <div class="form-row">
+          <label for="quantity">Quantity</label>
+          <input type="number" id="quantity" value="1" min="1" />
+        </div>
+
+        <div class="error-box" id="error-box"></div>
+
+        <button class="btn-primary" id="submit-btn" disabled onclick="startAnalysis()">
+          Calculate Should-Cost
+        </button>
+      </div>
+
+      <!-- Batch view -->
+      <div id="batch-view">
+        <div class="upload-zone" id="batch-drop-zone">
+          <div class="upload-icon">📂</div>
+          <p><strong>Click to select</strong> or drag and drop multiple PDFs</p>
+          <p class="upload-hint">Up to 12 drawings per batch &mdash; PDF only</p>
+        </div>
+        <input type="file" id="batch-file-input" accept=".pdf" multiple />
+
+        <div id="batch-list-wrap" style="display:none">
+          <div class="batch-meta">
+            <span><span class="count" id="batch-count-num">0</span> drawing(s) queued</span>
+            <span class="limit" id="batch-limit-note"></span>
+          </div>
+          <div class="batch-file-list" id="batch-file-list"></div>
+        </div>
+
+        <div class="form-row">
+          <label for="batch-quantity">Quantity each</label>
+          <input type="number" id="batch-quantity" value="1" min="1" />
+        </div>
+
+        <button class="btn-primary" id="batch-submit-btn" disabled onclick="startBatch()">
+          Run Batch Analysis
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div id="terminal-section">
+    <div class="terminal-window">
+      <div class="terminal-titlebar">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+        <span class="terminal-filename" id="terminal-filename"></span>
+      </div>
+      <div class="terminal-body" id="terminal-body">
+        <span class="cursor" id="cursor"></span>
+      </div>
+      <div class="terminal-footer" id="terminal-footer">
+        <span class="stage-label" id="stage-label"></span>
+        <div class="pipeline-progress">
+          <div class="pipeline-progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="part-banner" id="part-banner"></div>
+
+    <div class="card">
+      <div class="card-title">Line-Item Quote</div>
+      <table>
+        <thead>
+          <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+        </thead>
+        <tbody id="line-items-body"></tbody>
+      </table>
+    </div>
+
+    <div class="summary-grid">
+      <div class="card">
+        <div class="card-title">Cost Summary</div>
+        <div class="summary-lines" id="summary-lines"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Process Routing</div>
+        <ul class="routing-list" id="routing-list"></ul>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-erp" id="erp-btn" onclick="pushToERP(this)">&#8595;&nbsp; Export to Excel</button>
+      <button class="btn-secondary" onclick="resetAll()">&larr; Analyze Another Drawing</button>
+    </div>
+  </div>
+</main>
+
+<footer>wonderful.intelligence &nbsp;&mdash;&nbsp; Built for Schneider Packaging &nbsp;/&nbsp; The Pacteon Group</footer>
+
+<script>
+  /* ── Element refs ─────────────────────────────────────────── */
+  const dropZone     = document.getElementById('drop-zone');
+  const fileInput    = document.getElementById('file-input');
+  const fileLabel    = document.getElementById('file-label');
+  const submitBtn    = document.getElementById('submit-btn');
+  const errorBox     = document.getElementById('error-box');
+  const termFooter   = document.getElementById('terminal-footer');
+  const stageLabel   = document.getElementById('stage-label');
+  const progressFill = document.getElementById('progress-fill');
+
+  let stageCount = 0;
+
+  /* ── Mode tabs ────────────────────────────────────────────── */
+  function switchMode(mode) {
+    document.getElementById('tab-single').classList.toggle('active', mode === 'single');
+    document.getElementById('tab-batch').classList.toggle('active',  mode === 'batch');
+    document.getElementById('single-view').style.display = mode === 'single' ? 'block' : 'none';
+    document.getElementById('batch-view').style.display  = mode === 'batch'  ? 'block' : 'none';
+  }
+
+  /* ── Single upload ────────────────────────────────────────── */
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type === 'application/pdf') setFile(f);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+  function setFile(f) {
+    fileInput._file = f;
+    fileLabel.textContent = f.name;
+    submitBtn.disabled = false;
+  }
+
+  /* ── Batch upload ─────────────────────────────────────────── */
+  const batchDropZone  = document.getElementById('batch-drop-zone');
+  const batchFileInput = document.getElementById('batch-file-input');
+  let batchFiles = [];
+
+  batchDropZone.addEventListener('click', () => batchFileInput.click());
+  batchDropZone.addEventListener('dragover', e => { e.preventDefault(); batchDropZone.classList.add('drag-over'); });
+  batchDropZone.addEventListener('dragleave', () => batchDropZone.classList.remove('drag-over'));
+  batchDropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    batchDropZone.classList.remove('drag-over');
+    addBatchFiles(Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf'));
+  });
+  batchFileInput.addEventListener('change', () => addBatchFiles(Array.from(batchFileInput.files)));
+
+  function addBatchFiles(files) {
+    for (const f of files) {
+      if (batchFiles.length >= 12) break;
+      if (!batchFiles.find(b => b.name === f.name)) batchFiles.push(f);
+    }
+    renderBatchList();
+  }
+
+  function removeBatchFile(name) {
+    batchFiles = batchFiles.filter(f => f.name !== name);
+    renderBatchList();
+  }
+
+  function renderBatchList() {
+    const wrap      = document.getElementById('batch-list-wrap');
+    const listEl    = document.getElementById('batch-file-list');
+    const countEl   = document.getElementById('batch-count-num');
+    const limitNote = document.getElementById('batch-limit-note');
+    const btn       = document.getElementById('batch-submit-btn');
+
+    if (batchFiles.length === 0) {
+      wrap.style.display = 'none';
+      btn.disabled = true;
+      return;
+    }
+
+    wrap.style.display = 'block';
+    countEl.textContent = batchFiles.length;
+    limitNote.textContent = batchFiles.length >= 12 ? 'Max reached' : `${12 - batchFiles.length} remaining`;
+    btn.disabled = false;
+
+    listEl.innerHTML = batchFiles.map(f => `
+      <div class="batch-file-item">
+        <span>📄</span>
+        <span class="fi-name">${f.name}</span>
+        <button class="fi-remove" onclick="removeBatchFile(${JSON.stringify(f.name)})" title="Remove">&times;</button>
+      </div>
+    `).join('');
+  }
+
+  function startBatch() {
+    const btn = document.getElementById('batch-submit-btn');
+    btn.textContent = 'Coming soon — wiring up next';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = 'Run Batch Analysis';
+      btn.disabled = batchFiles.length === 0;
+    }, 2200);
+  }
+
+  /* ── Push to ERP ──────────────────────────────────────────── */
+  function pushToERP(btn) {
+    if (btn.classList.contains('sent')) return;
+    btn.classList.add('sent');
+    btn.innerHTML = '&#10003;&nbsp; Exported';
+    setTimeout(() => {
+      btn.classList.remove('sent');
+      btn.innerHTML = '&#8595;&nbsp; Export to Excel';
+    }, 2500);
+  }
+
+  /* ── Progress helpers ─────────────────────────────────────── */
+  function resetProgress() {
+    stageCount = 0;
+    termFooter.classList.remove('active');
+    termFooter.style.opacity = '';
+    termFooter.style.transition = '';
+    progressFill.classList.remove('shimmer');
+    progressFill.style.transition = 'none';
+    progressFill.style.width = '0%';
+    progressFill.offsetWidth;
+    progressFill.style.transition = '';
+  }
+
+  /* ── Single analysis ──────────────────────────────────────── */
+  async function startAnalysis() {
+    const file = fileInput._file || fileInput.files[0];
+    if (!file) return;
+    const qty = parseInt(document.getElementById('quantity').value) || 1;
+
+    errorBox.style.display = 'none';
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+
+    const termSection = document.getElementById('terminal-section');
+    const termBody    = document.getElementById('terminal-body');
+    document.getElementById('terminal-filename').textContent = file.name;
+    termBody.innerHTML = '<span class="cursor" id="cursor"></span>';
+    termSection.style.display = 'block';
+    resetProgress();
+
+    const form = new FormData();
+    form.append('file', file);
+    form.append('quantity', qty);
+
+    let jobId;
+    try {
+      const res  = await fetch('/analyze/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      jobId = data.job_id;
+    } catch (err) {
+      showError('Upload failed: ' + err.message);
+      return;
+    }
+
+    const evtSource = new EventSource(`/analyze/stream/${jobId}`);
+    let resultData  = null;
+
+    evtSource.onmessage = e => {
+      const msg = JSON.parse(e.data);
+
+      if (msg.type === 'log') {
+        appendLine(termBody, msg.text, msg.style);
+
+        if (msg.style === 'stage') {
+          stageCount++;
+          termFooter.classList.add('active');
+
+          if (stageCount === 1) {
+            stageLabel.textContent = 'Stage 1 of 3  ·  Reading Engineering Drawing';
+            progressFill.classList.add('shimmer');
+
+          } else if (stageCount === 2) {
+            progressFill.classList.remove('shimmer');
+            progressFill.style.transition = 'none';
+            progressFill.style.width = '38%';
+            progressFill.offsetWidth;
+            progressFill.style.transition = '';
+            progressFill.style.width = '52%';
+            stageLabel.textContent = 'Stage 2 of 3  ·  Routing Vendor Processes';
+
+          } else if (stageCount === 3) {
+            progressFill.style.width = '80%';
+            stageLabel.textContent = 'Stage 3 of 3  ·  Calculating Costs';
+          }
+        }
+      }
+
+      if (msg.type === 'result') resultData = msg.data;
+
+      if (msg.type === 'done') {
+        evtSource.close();
+        removeCursor();
+        progressFill.classList.remove('shimmer');
+        progressFill.style.width = '100%';
+        stageLabel.textContent = 'Complete';
+        setTimeout(() => {
+          termFooter.style.transition = 'opacity 0.5s';
+          termFooter.style.opacity = '0';
+        }, 700);
+        if (resultData) setTimeout(() => renderResults(resultData), 600);
+      }
+
+      if (msg.type === 'error') {
+        evtSource.close();
+        removeCursor();
+        showError(msg.message);
+      }
+    };
+
+    evtSource.onerror = () => {
+      evtSource.close();
+      removeCursor();
+      showError('Connection lost. Please try again.');
+    };
+  }
+
+  /* ── Render helpers ───────────────────────────────────────── */
+  function appendLine(container, text, style) {
+    const cursor = document.getElementById('cursor');
+    const span   = document.createElement('span');
+    span.className   = `term-line term-${style}`;
+    span.textContent = text;
+    container.insertBefore(span, cursor);
+    container.insertBefore(document.createTextNode('\n'), cursor);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function removeCursor() {
+    const c = document.getElementById('cursor');
+    if (c) c.remove();
+  }
+
+  function renderResults(data) {
+    const p = data.part;
+    const fields = [
+      ['Part Number', p.number], ['Part Name', p.name], ['Revision', p.revision],
+      ['Material',   p.material], ['Blank Size', p.dimensions], ['Form Type', p.form_type],
+    ];
+    if (p.formed_height) fields.push(['Formed Height', p.formed_height + '"']);
+
+    document.getElementById('part-banner').innerHTML = fields.map(([label, val]) =>
+      `<div class="field"><label>${label}</label><span>${val}</span></div>`
+    ).join('');
+
+    document.getElementById('line-items-body').innerHTML = data.line_items.map(item =>
+      `<tr>
+        <td>${item.description}</td>
+        <td>${item.quantity}</td>
+        <td>$${item.unit_price.toFixed(2)}</td>
+        <td>$${item.total.toFixed(2)}</td>
+      </tr>`
+    ).join('');
+
+    const s = data.summary;
+    document.getElementById('summary-lines').innerHTML = `
+      <div class="row"><span>Subtotal</span><span class="val">$${s.subtotal.toFixed(2)}</span></div>
+      <div class="row"><span>Overhead (15%)</span><span class="val">$${s.overhead.toFixed(2)}</span></div>
+      <div class="row"><span>Margin (10%)</span><span class="val">$${s.margin.toFixed(2)}</span></div>
+      <div class="row total"><span>Total</span><span class="val">$${s.total.toFixed(2)}</span></div>
+    `;
+
+    document.getElementById('routing-list').innerHTML = data.routing.map(step =>
+      `<li>${step}</li>`
+    ).join('');
+
+    // Reset ERP button state
+    const erpBtn = document.getElementById('erp-btn');
+    erpBtn.classList.remove('sent');
+    erpBtn.innerHTML = '&#8595;&nbsp; Export to Excel';
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function showError(msg) {
+    document.getElementById('terminal-section').style.display = 'none';
+    document.getElementById('upload-section').style.display  = 'block';
+    errorBox.textContent   = 'Error: ' + msg;
+    errorBox.style.display = 'block';
+    resetProgress();
+  }
+
+  function resetAll() {
+    document.getElementById('results').style.display          = 'none';
+    document.getElementById('terminal-section').style.display = 'none';
+    document.getElementById('upload-section').style.display   = 'block';
+    fileLabel.textContent  = '';
+    submitBtn.disabled     = true;
+    fileInput.value        = '';
+    fileInput._file        = null;
+    errorBox.style.display = 'none';
+    resetProgress();
+  }
+</script>
+
+</body>
+</html>

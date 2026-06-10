@@ -50,7 +50,8 @@ You have the following ANSI/ASME/ISO drawing standards reference. Use it to corr
 Extract full designation from title block or BOM. Use material_spec_prefixes from drawing_standards to match material_key.
 
 ## Features
-Extract every feature using hole_callout_terms, gdt_symbols, weld_symbols, and finish_callout_terms from drawing_standards. Include finish operations only if explicitly called out.
+Extract every feature using hole_callout_terms, gdt_symbols, weld_symbols, and finish_callout_terms from drawing_standards. Include finish operations only if a real surface treatment is explicitly called out (paint, powder coat, anodize, plating, etc.).
+Do NOT include as features: "as fabricated", "no finish", "mill finish", removable labels, part markings, or revision notes. These have no manufacturing cost and must be omitted.
 
 Always call the extract_drawing tool — do not respond with plain text.
 """
