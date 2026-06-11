@@ -1,5 +1,5 @@
 {
-  "_comment": "Reference Library calibration data. Columns A-P from Supporting Data.xlsx + PO Last price. Use po_actual_price only for accuracy scoring \u2014 never as pipeline input.",
+  "_comment": "Reference Library calibration data. Columns A-P from data/Supporting Data.xlsx + PO Last price. Use po_actual_price only for accuracy scoring \u2014 never as pipeline input.",
   "part_count": 165,
   "parts": [
     {
