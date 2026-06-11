@@ -25,5 +25,9 @@ dev = [
     "pytest-asyncio>=0.23.0",
 ]
 
+[project.scripts]
+pacteon-batch = "pacteon.batch_runner:main"
+pacteon = "pacteon.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]

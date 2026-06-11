@@ -30,6 +30,12 @@ class Quote(BaseModel):
     # Machine routing for ERP upload
     routing_steps: list[str] = Field(default_factory=list)
 
+    # Specialist review metrics
+    # Positive = specialists reduced process cost (potential overcharge caught)
+    # Negative = specialists increased process cost (foreman underestimated)
+    specialist_correction: float = 0.0
+    pipeline_elapsed_sec: float = 0.0
+
     @property
     def subtotal(self) -> float:
         return self.material_cost + self.labor_cost + self.machine_cost

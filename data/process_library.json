@@ -211,5 +211,74 @@
       "_note": "Fixed — rack and hang time per part."
     },
     "_calibration": "0.00060hr/sq_in. Tank time is the dominant cost driver."
+  },
+
+  "WELD_MIG": {
+    "formula_type": "linear",
+    "description": "MIG weld time per inch of weld bead. Faster than TIG — 2.5x feed rate. Carbon steel only.",
+    "time_per_in_hr": 0.008,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_weld_hr": 0.010,
+      "max_hr": 0.33,
+      "_note": "3 min base fixturing + 0.6 min per weld joint. MIG setup faster than TIG."
+    },
+    "_calibration": "0.008hr/in = ~29 sec/in. MIG is ~2.5x faster than TIG (0.020hr/in). Tune against real MIG tickets."
+  },
+
+  "BLAST": {
+    "formula_type": "area_linear",
+    "description": "Abrasive or glass-bead blast for surface prep before coating. Time scales with blank area.",
+    "base_time_hr": 0.033,
+    "time_per_sq_in_hr": 0.00030,
+    "max_time_hr": 1.5,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.05,
+      "_note": "Fixed — cabinet setup and part hang."
+    },
+    "_calibration": "0.00030hr/sq_in. Faster than paint; thin parts blast quickly."
+  },
+
+  "ZINC_PLATE": {
+    "formula_type": "area_linear",
+    "description": "Zinc electroplating for corrosion protection. Tank soak time scales with surface area.",
+    "base_time_hr": 0.033,
+    "time_per_sq_in_hr": 0.00100,
+    "max_time_hr": 4.0,
+    "setup_formula": {
+      "base_hr": 0.08,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.08,
+      "_note": "Fixed — rack, degrease, activate, rinse steps before tank."
+    },
+    "_calibration": "0.00100hr/sq_in = longer tank soak than anodize. Tune against plating invoices."
+  },
+
+  "CHROMATE": {
+    "formula_type": "count",
+    "description": "Chromate conversion coating on aluminum (MIL-DTL-5541 Type I or II). Fixed time — fast chemical dip regardless of part size at Schneider part scale.",
+    "time_per_unit_hr": 0.25,
+    "setup_formula": {
+      "base_hr": 0.08,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.08,
+      "_note": "Fixed — deox, rinse, dip, rinse, dry. Quantity = 1 per part."
+    },
+    "_calibration": "0.25hr fixed is conservative for small aluminum parts. Tune if large panels."
+  },
+
+  "LASER_MARK": {
+    "formula_type": "count",
+    "description": "Laser marking or engraving (part number, logo, serial). Same rate per mark as DRILL.",
+    "time_per_unit_hr": 0.017,
+    "setup_formula": {
+      "base_hr": 0.05,
+      "per_feature_hr": 0.0,
+      "max_hr": 0.05,
+      "_note": "Fixed 3 min — fixture and program load. Mark time itself is fast."
+    },
+    "_calibration": "0.017hr/mark = same as drill press. Tune if marks are complex vector fills."
   }
 }

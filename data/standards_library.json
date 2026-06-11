@@ -1,0 +1,118 @@
+{
+  "_comment": "Engineering standards reference injected into EngInfoSpecialistAgent and EngDocSpecialistAgent system prompts.",
+  "_sources": "ASME Y14.5-2018, ASTM A36/A572/A500/A1008/1018/304/316/6061/5052, AWS A2.4-2012, AWS D1.1-2020, ISO 1302",
+
+  "gdt_tolerances_by_process": {
+    "_note": "Achievable tolerances (±) per process per ASME Y14.5-2018 and Machinery's Handbook 31st ed.",
+    "LASER_CUT":   { "linear_in": 0.010, "angular_deg": 1.0,  "note": "±0.010\" typical for fiber laser on mild steel. Tighter possible with slow passes." },
+    "TUBE_LASER":  { "linear_in": 0.015, "angular_deg": 1.0,  "note": "Tube rotation adds ±0.005\" vs flat laser." },
+    "WATERJET":    { "linear_in": 0.008, "angular_deg": 0.5,  "note": "No HAZ; tighter tolerance possible with low traverse speed." },
+    "PRESS_BRAKE": { "linear_in": 0.030, "angular_deg": 1.0,  "note": "Bend angle ±1° typical. Formed height ±0.030\". CNC brake improves to ±0.5°." },
+    "DRILL":       { "linear_in": 0.020, "diameter_in": 0.005, "note": "Drill press location ±0.020\" without jig. Diameter ±0.005\" with standard drill." },
+    "TAP":         { "linear_in": 0.020, "note": "Location same as DRILL. Tap itself follows drilled hole." },
+    "CNC_MILL":    { "linear_in": 0.003, "diameter_in": 0.001, "note": "CNC mill can achieve ±0.001\" with care. Standard production ±0.003\"." },
+    "LATHE":       { "linear_in": 0.002, "diameter_in": 0.001, "note": "CNC lathe OD ±0.001\" diameter. Length ±0.002\"." },
+    "WELD_TIG":    { "linear_in": 0.060, "angular_deg": 2.0,  "note": "Weld distortion typically ±0.060\" on small parts. Fixture and backstep reduce distortion." },
+    "WELD_MIG":    { "linear_in": 0.060, "angular_deg": 2.0,  "note": "MIG distortion similar to TIG on structural carbon steel." }
+  },
+
+  "material_process_compatibility": {
+    "_note": "Flags incompatible or suboptimal material+process pairings per AWS D1.1 and vendor best practice.",
+    "6061_ALUMINUM + WELD_MIG":  { "allowed": false, "reason": "6061-T6 is highly susceptible to HAZ softening and cracking with MIG. AWS D1.2 requires TIG or specialized MIG wire (ER4043/ER5356). Use WELD_TIG." },
+    "5052_ALUMINUM + WELD_MIG":  { "allowed": true,  "note": "5052 can be MIG welded with ER5356 filler. Acceptable but TIG preferred for critical joints." },
+    "304_STAINLESS + WELD_MIG":  { "allowed": true,  "note": "MIG acceptable for 304 SS with ER308L wire. TIG preferred for thin gauges (<0.120\") or sanitary applications." },
+    "316_STAINLESS + WELD_MIG":  { "allowed": true,  "note": "MIG with ER316L acceptable. TIG preferred for corrosion-critical joints." },
+    "304_STAINLESS + ANODIZE":   { "allowed": false, "reason": "Anodize is an aluminum-only process (electrochemical oxidation of Al2O3). Stainless cannot be anodized. Use PAINT or POWDER_COAT for stainless finish." },
+    "316_STAINLESS + ANODIZE":   { "allowed": false, "reason": "Same as 304 — anodize is aluminum-only." },
+    "A36_STEEL + ANODIZE":       { "allowed": false, "reason": "Anodize is aluminum-only. Use PAINT, POWDER_COAT, or ZINC_PLATE for steel." },
+    "A36_STEEL + CHROMATE":      { "allowed": false, "reason": "Chromate conversion (MIL-DTL-5541) is aluminum-only. For steel corrosion protection use ZINC_PLATE or PAINT." },
+    "A36_STEEL + TUBE_LASER":    { "allowed": false, "reason": "TUBE_LASER requires tubular stock (HSS/DOM/ERW). A36 is plate/bar stock. Use LASER_CUT for A36 flat profiles." },
+    "round_bar + PRESS_BRAKE":   { "allowed": false, "reason": "Round bar cannot be press-brake bent — no flat surface for back-gauge. Use LATHE or CNC_MILL for round bar forming." },
+    "tube + PRESS_BRAKE":        { "allowed": false, "reason": "HSS/tube cannot be press-brake bent (collapses). Tube bending requires a mandrel bender — separate process not currently in system. Flag for manual review." }
+  },
+
+  "material_form_type_rules": {
+    "_note": "ASTM/AISI spec to form_type mapping. DrawingReaderAgent must assign these correctly.",
+    "A36":        { "valid_form_types": ["plate", "flat_stock"],  "note": "ASTM A36 structural steel — plate or flat bar stock only." },
+    "A572_GR50":  { "valid_form_types": ["plate", "flat_stock"],  "note": "ASTM A572 Gr50 HSLA — plate or flat bar only." },
+    "A500_GRB":   { "valid_form_types": ["tube"],                  "note": "ASTM A500 Gr B is HSS (square/rectangular/round hollow structural section) — always tube." },
+    "A1008_CRCS": { "valid_form_types": ["sheet_metal"],           "note": "ASTM A1008 cold-rolled carbon steel — sheet metal gauge (<0.125\" typically). Laser→brake→weld→finish workflow." },
+    "1018_STEEL": { "valid_form_types": ["flat_stock", "round_bar"], "note": "AISI 1018 cold-drawn — bar stock (flat or round). CNC mill or lathe." },
+    "304_STAINLESS": { "valid_form_types": ["plate", "sheet_metal", "flat_stock"], "note": "304 SS comes in plate, sheet, and bar forms. Assign form_type from drawing, not material alone." },
+    "316_STAINLESS": { "valid_form_types": ["plate", "sheet_metal", "flat_stock"], "note": "Same as 304." },
+    "6061_ALUMINUM": { "valid_form_types": ["plate", "flat_stock", "round_bar"],   "note": "6061 Al in plate, bar, and extrusion forms. Sheet (thin gauge) is 5052 not 6061 typically." },
+    "5052_ALUMINUM": { "valid_form_types": ["sheet_metal", "plate"],               "note": "5052 Al is the preferred sheet metal alloy — excellent formability, used for bent parts." },
+    "6063_ALUMINUM": { "valid_form_types": ["flat_stock"],                         "note": "6063 is an extrusion alloy — structural shapes and extrusions only." }
+  },
+
+  "weld_symbol_rules": {
+    "_reference": "AWS A2.4-2012 Standard Symbols for Welding",
+    "fillet": { "symbol": "△", "note": "Triangle symbol. Size = leg length. On-arrow-side vs other-side from symbol position." },
+    "groove_v": { "symbol": "V", "note": "V-groove. Requires edge prep (beveling). Adds ~50% time over fillet for same joint length." },
+    "groove_bevel": { "symbol": "⌐", "note": "Single bevel groove. One side beveled." },
+    "groove_u": { "symbol": "U", "note": "U-groove. Requires machined prep — more time than V." },
+    "plug_slot": { "symbol": "□", "note": "Plug or slot weld. Fill a hole in one plate to join to underlying plate." },
+    "spot": { "symbol": "○", "note": "Resistance spot or arc spot weld." },
+    "weld_all_around": { "symbol": "○ on reference line", "note": "Circle at joint of arrow and reference line = weld all around (full perimeter)." },
+    "field_weld": { "symbol": "flag on reference line", "note": "Flag = weld in field (not shop). Affects cost assignment (field vs. fabrication)." },
+    "impossible_combinations": [
+      "Fillet weld leg size > 0.75× base metal thickness is generally not achievable without distortion",
+      "Fillet on 0.048\" sheet (16ga) max practical leg = 0.048\" (equal thickness)",
+      "1\" fillet weld on sheet metal is impossible — flag as extraction error"
+    ]
+  },
+
+  "finish_callout_mapping": {
+    "_note": "Map common drawing finish callouts to process_id. Used by EngInfoSpecialist to validate finish assignments.",
+    "paint machine color":          "PAINT",
+    "paint safety yellow":          "PAINT",
+    "paint safety orange":          "PAINT",
+    "paint black":                  "PAINT",
+    "powder coat":                  "POWDER_COAT",
+    "powder coat black":            "POWDER_COAT",
+    "powder coat safety yellow":    "POWDER_COAT",
+    "anodize":                      "ANODIZE",
+    "anodize type ii":              "ANODIZE",
+    "anodize type iii":             "ANODIZE",
+    "hard anodize":                 "ANODIZE",
+    "clear anodize":                "ANODIZE",
+    "black anodize":                "ANODIZE",
+    "zinc plate":                   "ZINC_PLATE",
+    "zinc electroplate":            "ZINC_PLATE",
+    "hot dip galvanize":            "ZINC_PLATE",
+    "chromate":                     "CHROMATE",
+    "yellow chromate":              "CHROMATE",
+    "clear chromate":               "CHROMATE",
+    "gold chromate":                "CHROMATE",
+    "alodine":                      "CHROMATE",
+    "iridite":                      "CHROMATE",
+    "bead blast":                   "BLAST",
+    "glass bead blast":             "BLAST",
+    "abrasive blast":               "BLAST",
+    "shot blast":                   "BLAST",
+    "laser mark":                   "LASER_MARK",
+    "laser engrave":                "LASER_MARK",
+    "engrave part number":          "LASER_MARK",
+    "as fabricated":                null,
+    "no finish":                    null,
+    "mill finish":                  null,
+    "raw":                          null,
+    "finish per spec":              "REQUIRES_REVIEW",
+    "finish per customer spec":     "REQUIRES_REVIEW"
+  },
+
+  "thickness_form_type_plausibility": {
+    "_note": "Thickness ranges that are physically plausible per form_type. Flag outliers.",
+    "sheet_metal":  { "min_in": 0.020, "max_in": 0.119, "note": "Sheet metal is thin gauge. ≥0.125\" is plate, not sheet." },
+    "plate":        { "min_in": 0.120, "max_in": 4.000, "note": "Plate starts at ~11ga (0.120\"). Under 0.120\" = sheet_metal." },
+    "flat_stock":   { "min_in": 0.125, "max_in": 6.000, "note": "Flat bar. Can be thin (1/8\" bar) or heavy section." },
+    "tube":         { "min_in": 0.065, "max_in": 0.500, "note": "HSS wall thickness. Structural tube is typically 0.065\"–0.375\" wall." },
+    "round_bar":    { "min_in": 0.250, "max_in": 12.00, "note": "Diameter, not thickness. Flag if thickness_in is given for round bar — it's diameter." }
+  },
+
+  "astm_material_thickness_ranges": {
+    "A1008_CRCS": { "note": "A1008 comes in 26ga (0.018\") to 10ga (0.135\"). If thickness > 0.135\", likely A36 plate, not A1008 sheet." },
+    "A36":        { "note": "A36 plate from 3/16\" (0.188\") standard. Thinner than 3/16\" in A36 is rare — may actually be A1008 sheet." },
+    "A500_GRB":   { "note": "HSS wall thickness 0.065\"–0.500\" typical. Section size (OD/width) is separate from thickness." }
+  }
+}

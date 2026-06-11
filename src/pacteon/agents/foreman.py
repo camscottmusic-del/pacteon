@@ -143,9 +143,13 @@ class ShopForemanAgent:
             processes.append(MachineProcess(
                 feature_zone=a["feature_zone"],
                 feature_description=a["feature_description"],
+                process_id=process_id,
                 machine_id=process_id,
                 machine_type=vendor_proc["name"],
                 tool_used=process_id,
+                quantity=quantity,
+                cut_length_in=a.get("cut_length_in", 0.0) or 0.0,
+                pierce_count=pierce_count,
                 estimated_time_hr=run_time_hr,
                 setup_time_hr=setup_time_hr,
                 rate_per_hr=rate,

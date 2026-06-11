@@ -8,6 +8,7 @@ import asyncio
 import json
 import os
 import tempfile
+import time as _time
 import uuid
 from pathlib import Path
 
@@ -67,9 +68,13 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
 
     try:
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        t_pipeline = _time.time()
 
         # ── Stage 1 ──────────────────────────────────────────────────────────
+        t_stage = _time.time()
         yield log(f"Stage 1: Reading engineering drawing... [{filename}]", "stage")
+
+        from .agents.eng_info_specialist import EngInfoSpecialistAgent
 
         reader = DrawingReaderAgent(client)
 
@@ -106,11 +111,45 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
         yield log(f"  Material: {drawing.material} ({dims})", "info")
         yield log(f"  Features: {len(drawing.features)} found", "info")
         for f in drawing.features:
-            yield log(f"    [{f.zone}] {f.quantity}× {f.feature_type} — {f.description}", "dim")
+            yield log(f"    [{f.zone}] {f.quantity}x {f.feature_type} -- {f.description}", "dim")
+        yield log(f"  Stage 1 complete ({_time.time() - t_stage:.1f}s)", "dim")
+
+        # ── Stage 1.5 ─────────────────────────────────────────────────────────
+        t_stage = _time.time()
+        yield log("", "info")
+        yield log("Stage 1.5: Validating against ASME/ASTM/AWS standards...", "stage")
+
+        try:
+            eng_info = EngInfoSpecialistAgent(client)
+            drawing, validation = await asyncio.to_thread(eng_info.validate, drawing)
+
+            if validation.has_errors:
+                for msg in validation.error_messages:
+                    yield log(f"  [STANDARDS ERROR] {msg}", "error")
+                yield log("  Halting -- fix drawing interpretation errors above before routing.", "error")
+                yield sse({"type": "error", "message": "Standards validation errors: " + "; ".join(validation.error_messages)})
+                return
+
+            for note in validation.warning_notes:
+                yield log(f"  {note}", "warn")
+            for gap in validation.standards_gaps:
+                yield log(f"  [STANDARDS GAP] {gap['type']}: {gap['value']}", "dim")
+
+            if not validation.flags and not validation.feature_corrections:
+                yield log("  Drawing validated -- no standards issues found.", "success")
+            else:
+                yield log(f"  Validated: {len(validation.feature_corrections)} correction(s), {len(validation.flags)} flag(s)", "info")
+            yield log(f"  Stage 1.5 complete ({_time.time() - t_stage:.1f}s)", "dim")
+
+        except Exception as e:
+            yield log(f"  Stage 1.5 skipped (non-fatal): {e}", "dim")
 
         # ── Stage 2 ──────────────────────────────────────────────────────────
+        t_stage = _time.time()
         yield log("", "info")
         yield log("Stage 2: Determining vendor processes...", "stage")
+
+        from .agents.specialist_dispatcher import SpecialistDispatcher
 
         foreman = ShopForemanAgent(client)
         processes = await asyncio.to_thread(foreman.assign_routes, drawing)
@@ -118,11 +157,40 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
         for p in processes:
             yield log(
                 f"  [{p.feature_zone}] {p.machine_type}: {p.feature_description}"
-                f"  →  {p.estimated_time_hr:.3f} hr  →  ${p.labor_cost:.2f}",
+                f"  ->  {p.estimated_time_hr:.3f} hr  ->  ${p.total_cost:.2f}",
                 "success",
             )
+        yield log(f"  Stage 2 complete ({_time.time() - t_stage:.1f}s)", "dim")
+
+        # ── Stage 2.5 ─────────────────────────────────────────────────────────
+        specialist_correction = 0.0
+        if processes:
+            t_stage = _time.time()
+            foreman_process_total = sum(p.total_cost for p in processes)
+            yield log("", "info")
+            yield log("Stage 2.5: Specialist parameter review...", "stage")
+            try:
+                dispatcher = SpecialistDispatcher(client)
+                processes = await asyncio.to_thread(dispatcher.review, drawing, processes)
+                specialist_process_total = sum(p.total_cost for p in processes)
+                specialist_correction = foreman_process_total - specialist_process_total
+                reviewed_count = sum(1 for p in processes if p.specialist_reviewed)
+                yield log(f"  {reviewed_count}/{len(processes)} assignments specialist-reviewed", "info")
+                for p in processes:
+                    if p.notes and ("specialist]" in p.notes or "eng-doc]" in p.notes):
+                        yield log(f"  [{p.feature_zone}] {p.machine_type}: {p.notes}", "dim")
+                if specialist_correction > 0.01:
+                    yield log(f"  Potential overcharge caught: ${specialist_correction:.2f}  (foreman ${foreman_process_total:.2f} -> specialist ${specialist_process_total:.2f})", "success")
+                elif specialist_correction < -0.01:
+                    yield log(f"  Underestimate corrected: +${abs(specialist_correction):.2f}  (foreman ${foreman_process_total:.2f} -> specialist ${specialist_process_total:.2f})", "warn")
+                else:
+                    yield log(f"  Parameters confirmed -- no cost adjustment (${foreman_process_total:.2f})", "dim")
+                yield log(f"  Stage 2.5 complete ({_time.time() - t_stage:.1f}s)", "dim")
+            except Exception as e:
+                yield log(f"  Stage 2.5 skipped (non-fatal): {e}", "dim")
 
         # ── Stage 3 ──────────────────────────────────────────────────────────
+        t_stage = _time.time()
         yield log("", "info")
         yield log("Stage 3: Calculating costs...", "stage")
 
@@ -133,15 +201,19 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
             quantity,
         )
 
+        pipeline_elapsed_sec = round(_time.time() - t_pipeline, 1)
+
         quote = Quote(
             part_number=drawing.part_number,
             part_name=drawing.part_name,
             revision=drawing.revision,
             material_cost=material_total,
+            specialist_correction=round(specialist_correction, 2),
+            pipeline_elapsed_sec=pipeline_elapsed_sec,
         )
 
         quote.line_items.append(LineItem(
-            description=f'Raw material: {drawing.material} ({drawing.length_in}" × {drawing.width_in}")',
+            description=f'Raw material: {drawing.material} ({drawing.length_in}" x {drawing.width_in}")',
             quantity=quantity,
             unit="pcs",
             unit_price=material_unit,
@@ -152,7 +224,7 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
             quote.labor_cost += proc.labor_cost * quantity
             quote.machine_cost += (proc.total_cost - proc.labor_cost) * quantity
             quote.line_items.append(LineItem(
-                description=f"{proc.machine_type} — {proc.feature_description} (zone {proc.feature_zone})",
+                description=f"{proc.machine_type} -- {proc.feature_description} (zone {proc.feature_zone})",
                 quantity=quantity,
                 unit="pcs",
                 unit_price=proc.total_cost,
@@ -168,19 +240,26 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
         yield log(f"  Processing:  ${(summary['labor_cost'] + summary['machine_cost']):.2f}", "info")
         yield log(f"  Overhead:    ${summary['overhead']:.2f}", "info")
         yield log(f"  Margin:      ${summary['margin']:.2f}", "info")
-        yield log(f"  {'─' * 24}", "dim")
+        yield log(f"  {'-' * 24}", "dim")
         yield log(f"  TOTAL:       ${summary['total_price']:.2f}", "total")
+
+        if abs(specialist_correction) > 0.01:
+            if specialist_correction > 0:
+                yield log(f"  Specialist review caught ${specialist_correction:.2f} in potential overcharges", "success")
+            else:
+                yield log(f"  Specialist review corrected +${abs(specialist_correction):.2f} underestimate", "warn")
+        yield log(f"  Stage 3 complete ({_time.time() - t_stage:.1f}s) | pipeline total {pipeline_elapsed_sec}s", "dim")
 
         yield sse({
             "type": "result",
             "data": {
                 "part": {
-                    "number": drawing.part_number or "—",
-                    "name": drawing.part_name or "—",
-                    "revision": drawing.revision or "—",
-                    "material": drawing.material or "—",
-                    "dimensions": f'{drawing.length_in}" × {drawing.width_in}"',
-                    "form_type": drawing.part_form_type or "—",
+                    "number": drawing.part_number or "--",
+                    "name": drawing.part_name or "--",
+                    "revision": drawing.revision or "--",
+                    "material": drawing.material or "--",
+                    "dimensions": f'{drawing.length_in}" x {drawing.width_in}"',
+                    "form_type": drawing.part_form_type or "--",
                     "formed_height": drawing.formed_height_in,
                 },
                 "line_items": [
@@ -199,8 +278,17 @@ async def _pipeline_stream(job_id: str, tmp_path: str, filename: str, quantity: 
                     "total": round(summary["total_price"], 2),
                 },
                 "routing": quote.routing_steps,
+                "specialist_correction": round(specialist_correction, 2),
+                "pipeline_elapsed_sec": pipeline_elapsed_sec,
             },
         })
+
+        # Log run for calibration loop
+        try:
+            from .main import _log_run
+            _log_run(drawing, quote)
+        except Exception:
+            pass
 
         yield sse({"type": "done"})
 

@@ -14,5 +14,9 @@
   "WELD_TIG":    { "name": "TIG Weld",                 "rate_per_hr": 80.0,  "setup_hr": 0.33, "form_types": ["all"], "materials": ["stainless", "aluminum", "carbon_steel"] },
   "PAINT":       { "name": "Paint",                    "rate_per_hr": 50.0,  "setup_hr": 0.50, "form_types": ["all"] },
   "POWDER_COAT": { "name": "Powder Coat",              "rate_per_hr": 55.0,  "setup_hr": 0.50, "form_types": ["all"] },
-  "ANODIZE":     { "name": "Anodize (aluminum only)",  "rate_per_hr": 60.0,  "setup_hr": 0.50, "form_types": ["all"], "materials": ["aluminum"] }
+  "ANODIZE":     { "name": "Anodize (aluminum only)",  "rate_per_hr": 60.0,  "setup_hr": 0.50, "form_types": ["all"], "materials": ["aluminum"] },
+  "BLAST":       { "name": "Abrasive/Bead Blast",      "rate_per_hr": 40.0,  "setup_hr": 0.17, "form_types": ["all"] },
+  "ZINC_PLATE":  { "name": "Zinc Electroplate",        "rate_per_hr": 60.0,  "setup_hr": 0.25, "form_types": ["all"] },
+  "CHROMATE":    { "name": "Chromate Conversion",      "rate_per_hr": 55.0,  "setup_hr": 0.17, "form_types": ["all"], "materials": ["aluminum"] },
+  "LASER_MARK":  { "name": "Laser Mark / Engrave",     "rate_per_hr": 90.0,  "setup_hr": 0.08, "form_types": ["all"] }
 }
