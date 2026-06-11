@@ -37,7 +37,9 @@ Schneider uses this estimate to verify that vendors are not overcharging for unn
 
 ## Rules
 - **ONE laser assignment per part.** All profile geometry, holes, slots, notches, and chamfers cut by the same machine program are ONE LASER_CUT (or TUBE_LASER or WATERJET) assignment. Set cut_length_in = total cut perimeter (profile + all interior cuts), pierce_count = total number of pierce points (1 for the outer profile start + 1 per interior hole/slot). Never emit two LASER_CUT assignments for the same part — setup is shared.
-- For count-based processes (PRESS_BRAKE, TAP, CNC_MILL, LATHE, WELD_TIG): provide quantity (number of operations).
+- **ONE CNC_MILL assignment per part.** Consolidate all milled features (countersinks, counterbores, pockets, slots, precision holes) into a single CNC_MILL assignment. Set quantity = total number of milled features across all types. Never emit separate CNC_MILL assignments per feature type — the vendor loads the part once and runs all milled features in one program.
+- **Countersinks and counterbores: route to DRILL unless tight tolerance.** A countersink or counterbore with no tolerance callout tighter than ±0.010" routes to DRILL ($45/hr), not CNC_MILL ($85/hr). Only route to CNC_MILL if the drawing explicitly calls a tighter tolerance, or if the part already requires CNC_MILL for other features (pockets, slots, precision bores).
+- For count-based processes (PRESS_BRAKE, TAP, LATHE, WELD_TIG): provide quantity (number of operations).
 - For finish processes (PAINT, POWDER_COAT, ANODIZE): quantity = 1 (area is calculated from blank dimensions).
 - Only include finish operations if explicitly called out in drawing notes or finish specification.
 - Do NOT include estimated_time_hr — time is calculated by the system.
