@@ -89,9 +89,12 @@ class BaseSpecialistAgent:
                 if update["efficiency_note"] and update["efficiency_note"].lower() != "parameters confirmed":
                     note_parts.append(f"[{self.domain} specialist] {update['efficiency_note']}")
                 proc = proc.model_copy(update={
+                    "cut_length_in":       update.get("cut_length_in", proc.cut_length_in),
+                    "pierce_count":        update.get("pierce_count",   proc.pierce_count),
+                    "quantity":            update.get("quantity",        proc.quantity),
                     "specialist_reviewed": True,
-                    "specialist_domain": self.domain,
-                    "notes": " | ".join(note_parts) if note_parts else proc.notes,
+                    "specialist_domain":   self.domain,
+                    "notes":               " | ".join(note_parts) if note_parts else proc.notes,
                 })
             result.append(proc)
         return result

@@ -170,9 +170,9 @@
 
   "PAINT": {
     "formula_type": "area_linear",
-    "description": "Spray paint (machine color or specified color). Cost scales continuously with blank area as a proxy for painted surface area.",
+    "description": "Spray paint (machine color or specified color). Cost scales continuously with blank area as a proxy for painted surface area. Rate accounts for both faces (2× single-face area) since blank_area passed is always 1-face.",
     "base_time_hr": 0.033,
-    "time_per_sq_in_hr": 0.00025,
+    "time_per_sq_in_hr": 0.00050,
     "max_time_hr": 2.0,
     "setup_formula": {
       "base_hr": 0.05,

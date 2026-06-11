@@ -15,10 +15,12 @@ import anthropic
 from ..models.drawing import DrawingFeature, ExtractedDrawing
 
 _STANDARDS_LIB_PATH = Path(__file__).parents[3] / "data" / "standards_library.json"
+_PRICES_PATH       = Path(__file__).parents[3] / "data" / "material_prices.json"
 
 
 def _build_system_prompt() -> str:
-    standards = json.loads(_STANDARDS_LIB_PATH.read_text(encoding="utf-8"))
+    standards   = json.loads(_STANDARDS_LIB_PATH.read_text(encoding="utf-8"))
+    local_keys  = list(json.loads(_PRICES_PATH.read_text(encoding="utf-8"))["materials"].keys())
 
     tol_table = json.dumps(standards["gdt_tolerances_by_process"], indent=2)
     compat_table = json.dumps(standards["material_process_compatibility"], indent=2)
@@ -27,6 +29,7 @@ def _build_system_prompt() -> str:
     finish_map = json.dumps(standards["finish_callout_mapping"], indent=2)
     thickness_rules = json.dumps(standards["thickness_form_type_plausibility"], indent=2)
     astm_thickness = json.dumps(standards["astm_material_thickness_ranges"], indent=2)
+    local_keys_str = ", ".join(local_keys)
 
     return f"""\
 You are Schneider Packaging's engineering information specialist and the system's standards authority.
@@ -108,17 +111,24 @@ designations, incorrect GD&T interpretations, invalid weld callouts, and implaus
 
 ## Severity levels for flags
 
-- **error**: A fundamental problem that would cause a wrong quote or an unbuildable routing.
-  Examples: material_key assigned to wrong alloy family; anodize assigned to steel part;
-  weld fillet size larger than base metal thickness. Error-level flags halt Stage 2 routing
-  and are surfaced to the user for correction before proceeding.
+- **error**: Reserve ONLY for situations where routing would produce a fundamentally wrong
+  quote or an unbuildable part AND no valid correction is possible. True errors:
+  anodize callout on a steel part; weld fillet size larger than base metal thickness;
+  part_form_type is impossible for the ASTM spec (e.g., A500 GrB cannot be sheet_metal);
+  blank dimensions are 0 or physically impossible (e.g., length > 200").
+  Do NOT raise error for material/thickness boundary cases where a valid alternative exists.
 
-- **warning**: A potential issue that should be reviewed but does not block routing.
-  Examples: thickness slightly outside typical range for the form_type; finish callout
-  says "per spec" without a spec number; a tolerance tighter than the process can achieve
-  (vendor may use a tighter machine — worth flagging).
+- **warning**: Anything that should be reviewed but still allows routing to proceed.
+  Examples: thickness at the edge of a standard range (reassign material_key and warn);
+  drawing says "CRS" but thickness fits A36 better (correct material_key, flag for review);
+  finish callout without a spec number; tolerance tighter than the process typically achieves.
+  When in doubt, use warning — the foreman and specialists can handle ambiguity downstream.
 
 ## Output
+
+## Valid material_key values (use EXACTLY as shown — no abbreviations)
+
+{local_keys_str}
 
 Always call the validate_drawing_extraction tool. Never respond with plain text.
 Return your validated values and flags concisely. For corrections, always include the
@@ -137,7 +147,7 @@ _TOOL = {
         "properties": {
             "material_key_confirmed": {
                 "type": "string",
-                "description": "Validated material_key — same as input or corrected. Must be a key from material_prices.json."
+                "description": "Validated material_key — same as input or corrected. Must be one of the exact keys listed in 'Valid material_key values' in the system prompt (e.g. A36_STEEL, not A36)."
             },
             "part_form_type_confirmed": {
                 "type": "string",

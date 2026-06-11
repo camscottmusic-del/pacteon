@@ -36,10 +36,9 @@ Schneider uses this estimate to verify that vendors are not overcharging for unn
 - **weldment**: Each component by its own form_type, then WELD_TIG for assembly.
 
 ## Rules
-- Every feature must map to exactly one process_id.
-- For geometry-based processes (LASER_CUT, WATERJET, TUBE_LASER): provide cut_length_in (estimate the cut perimeter from part dimensions if not explicit) and pierce_count (number of holes/slots).
+- **ONE laser assignment per part.** All profile geometry, holes, slots, notches, and chamfers cut by the same machine program are ONE LASER_CUT (or TUBE_LASER or WATERJET) assignment. Set cut_length_in = total cut perimeter (profile + all interior cuts), pierce_count = total number of pierce points (1 for the outer profile start + 1 per interior hole/slot). Never emit two LASER_CUT assignments for the same part — setup is shared.
 - For count-based processes (PRESS_BRAKE, TAP, CNC_MILL, LATHE, WELD_TIG): provide quantity (number of operations).
-- For finish processes (PAINT, POWDER_COAT, ANODIZE): quantity = 1 (area tier is calculated from blank dimensions).
+- For finish processes (PAINT, POWDER_COAT, ANODIZE): quantity = 1 (area is calculated from blank dimensions).
 - Only include finish operations if explicitly called out in drawing notes or finish specification.
 - Do NOT include estimated_time_hr — time is calculated by the system.
 
